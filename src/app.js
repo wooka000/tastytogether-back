@@ -1,12 +1,51 @@
+require('dotenv').config();
+
 const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const { MONGODB_URI } = process.env;
+
+const indexRouter = require('./routes/index');
+
+const connectToDatabase = async (url) => {
+    try {
+        await mongoose.connect(url, {
+            dbName: 'tastyTogether',
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log('연결성공');
+    } catch (err) {
+        console.log('연결실패', err);
+    }
+};
+
+const url = MONGODB_URI;
+connectToDatabase(url);
 
 const app = express();
-const port = 3000;
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cors());
+app.use(cookieParser());
+
+app.use('/', indexRouter);
+
+app.use((req, res, next) => {
+    const error = new Error('Resource Not Found');
+    error.statusCode = 404;
+    next(error);
 });
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+app.use((err, req, res) => {
+    console.error(err);
+    res.status(err.statusCode || 500);
+    res.json({ status: err.status, reason: err.message });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`정상적으로 TastyTogether 서버를 시작하였습니다.  http://localhost:${PORT}`);
 });

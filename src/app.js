@@ -41,6 +41,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors(corsOption));
 app.use(cookieParser());
 
+app.use('/auth', authRouter);
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
 app.use('/mypage', mypageRouter);

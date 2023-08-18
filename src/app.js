@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const { MONGODB_URI } = process.env;
 
 const indexRouter = require('./routes/index');
+const authRouter = require('./routes/auth');
 
 const connectToDatabase = async (url) => {
     try {
@@ -32,6 +33,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 app.use(cookieParser());
 
+app.use('/auth', authRouter);
 app.use('/', indexRouter);
 
 app.use((req, res, next) => {

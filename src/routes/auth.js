@@ -1,13 +1,30 @@
 require('dotenv').config();
 const { Router } = require('express');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const asyncHandler = require('../utils/async-handler');
 const { User } = require('../data-access/model/user');
 
-// const jwt = require('jsonwebtoken');
-
 const router = Router();
-// const key = env.process[SECRET_KEY];
+const { SECRET_KEY } = process.env;
+
+const login = async (req, res) => {
+    const { email, password } = req.body;
+
+    const registeredUser = await User.findOne({ email });
+    if (!registeredUser) {
+        throw new Error('가입되지 않은 이메일입니다.');
+    }
+    const checkPassword = await bcrypt.compare(password, registeredUser.password);
+    console.log(checkPassword);
+    if (!checkPassword) {
+        throw new Error('비밀번호를 잘못 입력했습니다.');
+    }
+
+    const token = jwt.sign({ registeredUser }, SECRET_KEY, { expiresIn: '1h' });
+
+    res.status(200).json({ token });
+};
 
 const signup = async (req, res) => {
     const { email, password, nickname, name } = req.body;
@@ -59,7 +76,7 @@ const checkNickname = async (req, res) => {
     });
 };
 
-router.post('/login');
+router.post('/login', asyncHandler(login));
 router.post('/signup', asyncHandler(signup));
 router.post('/email', asyncHandler(checkEmail));
 router.post('/nickname', asyncHandler(checkNickname));

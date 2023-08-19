@@ -8,6 +8,7 @@ const { User } = require('../data-access/model/user');
 const router = Router();
 const { SECRET_KEY } = process.env;
 
+// 로그인
 const login = async (req, res) => {
     const { email, password } = req.body;
 
@@ -23,15 +24,17 @@ const login = async (req, res) => {
 
     const token = jwt.sign({ registeredUser }, SECRET_KEY, { expiresIn: '1h' });
 
-    // const cookieOption = {
-    //     httpOnly: false,
-    //     maxAge: 1 * 60 * 60 * 1000,
-    // };
-    // res.cookie('token', token, cookieOption);
+    const cookieOption = {
+        httpOnly: true,
+        maxAge: 1 * 60 * 60 * 1000,
+    };
 
+    //token 보내기
+    res.cookie('token', token, cookieOption);
     res.json({ token });
 };
 
+// 회원가입
 const signup = async (req, res) => {
     const { email, password, nickname, name } = req.body;
     console.log(req.body);
@@ -56,6 +59,7 @@ const signup = async (req, res) => {
     res.status(200).json({ newUser });
 };
 
+// 이메일 중복검사
 const checkEmail = async (req, res) => {
     const { email } = req.body;
     const checkResult = await User.findOne({ email });
@@ -69,6 +73,7 @@ const checkEmail = async (req, res) => {
     });
 };
 
+// 닉네임 중복검사
 const checkNickname = async (req, res) => {
     const { nickname } = req.body;
     const checkResult = await User.findOne({ nickname });
@@ -82,13 +87,14 @@ const checkNickname = async (req, res) => {
     });
 };
 
-const checkTokenHandler = (req, res) => {
-    const userToken = req.cookies;
-    console.log(userToken);
-    res.json({ message: '성공' });
-};
+// request에 cookie 담기는지 테스트용
+// const checkTokenHandler = (req, res) => {
+//     const userToken = req.cookies;
+//     console.log(userToken);
+//     res.json({ message: '성공' });
+// };
+// router.get('/login', checkTokenHandler);
 
-router.get('/login', checkTokenHandler);
 router.post('/login', asyncHandler(login));
 router.post('/signup', asyncHandler(signup));
 router.post('/email', asyncHandler(checkEmail));

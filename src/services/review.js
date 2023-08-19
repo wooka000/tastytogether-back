@@ -1,14 +1,14 @@
 const reviewRepository = require('../data-access/model/review');
 
-function getAll(req, res) {
+async function getAll(req, res) {
     console.log(req.url);
-    const reviews = reviewRepository.getAll();
+    const reviews = await reviewRepository.getAll();
     res.status(200).json(reviews);
 }
 
-function getByUserNickname(req, res) {
+async function getByUserNickname(req, res) {
     const userNickname = req.query.usernickname;
-    const data = reviewRepository.getByUserNickname(userNickname);
+    const data = await reviewRepository.getByUserNickname(userNickname);
     if (data.length >= 1) {
         res.status(200).json(data);
     } else {
@@ -16,9 +16,9 @@ function getByUserNickname(req, res) {
     }
 }
 
-function getByReviewId(req, res) {
+async function getByReviewId(req, res) {
     const { reviewId } = req.params;
-    const review = reviewRepository.getByReviewId(reviewId);
+    const review = await reviewRepository.getByReviewId(reviewId);
     if (review) {
         res.status(200).json(review);
     } else {
@@ -26,10 +26,10 @@ function getByReviewId(req, res) {
     }
 }
 
-function update(req, res) {
+async function update(req, res) {
     const { reviewId } = req.params;
     const { grade, content } = req.body;
-    const review = reviewRepository.update(reviewId, grade, content);
+    const review = await reviewRepository.update(reviewId, grade, content);
     if (review) {
         res.status(200).json(review);
     } else {
@@ -37,15 +37,15 @@ function update(req, res) {
     }
 }
 
-function remove(req, res) {
+async function remove(req, res) {
     const { reviewId } = req.params;
-    reviewRepository.remove(reviewId);
+    await reviewRepository.remove(reviewId);
     res.sendStatus(204);
 }
 
-function getByStoreId(req, res) {
+async function getByStoreId(req, res) {
     const { storeId } = req.params;
-    const storeReviews = reviewRepository.getByStoreId(storeId);
+    const storeReviews = await reviewRepository.getByStoreId(storeId);
     if (storeReviews) {
         res.status(200).json(storeReviews);
     } else {
@@ -53,10 +53,16 @@ function getByStoreId(req, res) {
     }
 }
 
-function create(req, res) {
+async function create(req, res) {
     const { storeId } = req.params;
     const { grade, content, usernickname, username } = req.body;
-    const newReview = reviewRepository.create(storeId, grade, content, usernickname, username);
+    const newReview = await reviewRepository.create(
+        storeId,
+        grade,
+        content,
+        usernickname,
+        username,
+    );
     res.status(201).json(newReview);
 }
 

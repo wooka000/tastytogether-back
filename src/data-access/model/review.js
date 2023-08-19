@@ -29,19 +29,19 @@ let reviews = [
     },
 ];
 
-function getAll() {
+async function getAll() {
     return reviews;
 }
 
-function getByUserNickname(usernickname) {
+async function getByUserNickname(usernickname) {
     return reviews.filter((review) => review.usernickname === usernickname);
 }
 
-function getByReviewId(reviewId) {
+async function getByReviewId(reviewId) {
     return reviews.find((reviewItem) => reviewItem.id === reviewId);
 }
 
-function update(reviewId, grade, content) {
+async function update(reviewId, grade, content) {
     const review = reviews.find((reviewItem) => reviewItem.id === reviewId);
     if (review) {
         review.grade = grade;
@@ -50,15 +50,15 @@ function update(reviewId, grade, content) {
     return review;
 }
 
-function remove(reviewId) {
+async function remove(reviewId) {
     reviews = reviews.filter((review) => review.id !== reviewId);
 }
 
-function getByStoreId(storeId) {
+async function getByStoreId(storeId) {
     return reviews.filter((review) => review.storeId === storeId);
 }
 
-function create(storeId, grade, content, usernickname, username) {
+async function create(storeId, grade, content, usernickname, username) {
     const newReview = {
         id: Date.now().toString(),
         grade,

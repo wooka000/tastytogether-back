@@ -23,7 +23,13 @@ const login = async (req, res) => {
 
     const token = jwt.sign({ registeredUser }, SECRET_KEY, { expiresIn: '1h' });
 
-    res.status(200).json({ token });
+    // const cookieOption = {
+    //     httpOnly: false,
+    //     maxAge: 1 * 60 * 60 * 1000,
+    // };
+    // res.cookie('token', token, cookieOption);
+
+    res.json({ token });
 };
 
 const signup = async (req, res) => {
@@ -76,6 +82,13 @@ const checkNickname = async (req, res) => {
     });
 };
 
+const checkTokenHandler = (req, res) => {
+    const userToken = req.cookies;
+    console.log(userToken);
+    res.json({ message: '성공' });
+};
+
+router.get('/login', checkTokenHandler);
 router.post('/login', asyncHandler(login));
 router.post('/signup', asyncHandler(signup));
 router.post('/email', asyncHandler(checkEmail));

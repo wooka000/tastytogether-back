@@ -30,6 +30,9 @@ const connectToDatabase = async (url) => {
 };
 
 const url = MONGODB_URI;
+
+const corsOption = { origin: 'http://localhost:3000', credentials: true };
+
 connectToDatabase(url);
 
 const corsOption = { origin: 'http://localhost:3000', credentials: true };

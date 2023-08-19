@@ -1,10 +1,10 @@
-const { Schema } = require('mongoose');
+const { Schema,model } = require('mongoose');
 
 const commentSchema = new Schema(
     {
         userId: {
-            type: Schema.Types.ObjectId,
-            ref: 'users',
+            type: Number,
+            // ref: 'Users',
             required: true,
           },
         content: {
@@ -13,15 +13,9 @@ const commentSchema = new Schema(
         },
         boardId: {
             type: Schema.Types.ObjectId,
-            ref: 'board',
+            ref: 'Board',
             required: true
         },
-        writeDate: {
-            type: Date,
-            default: () => new Date().toISOString().split('T')[0],
-            required: true,
-          },
-
     },
     {
         collection: 'comment',
@@ -29,4 +23,4 @@ const commentSchema = new Schema(
     },
 );
 
-module.exports = commentSchema;
+module.exports = model('Commnet', commentSchema);

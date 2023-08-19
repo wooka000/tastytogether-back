@@ -4,6 +4,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const boardRouter = require('./routes/board')
+const commentRouter = require('./routes/comment')
 
 const { MONGODB_URI } = process.env;
 

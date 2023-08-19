@@ -1,31 +1,30 @@
-const { Schema } = require('mongoose');
+const { Schema,model } = require('mongoose');
 
 const boardListSchema = new Schema(
     {
         userId: {
-            type: Schema.Types.ObjectId,
-            ref: 'users',
+            type: Number,
+            // ref: 'User',
             required: true,
-          },
-        store: {
-            type: Schema.Types.ObjectId,
-            ref: 'store',
+        },
+        storeId: {
+            // type: Schema.Types.ObjectId,
+            type: Number,
+            // ref: 'Store',
             required: true,
-          },
+        },
         title: {
             type: String,
             required: true,
         },
         content: {
-            type: Number,
+            type: String,
             required: true,
         },
-        writeDate: {
-            type: Date,
-            default: () => new Date().toISOString().split('T')[0],
+        meetDate: {
+            type: String,
             required: true,
-          },
-
+        },
     },
     {
         collection: 'boardList',
@@ -33,5 +32,4 @@ const boardListSchema = new Schema(
     },
 );
 
-module.exports = boardListSchema;
-
+module.exports = model('Board', boardListSchema);

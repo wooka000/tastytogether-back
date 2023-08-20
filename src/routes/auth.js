@@ -3,14 +3,19 @@ const { Router } = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const asyncHandler = require('../utils/async-handler');
-const { User } = require('../data-access/model/user');
+const { User, Token } = require('../data-access');
+const verifyLogin = require('../middlewares/login_validator');
 
 const router = Router();
-const { SECRET_KEY } = process.env;
+const { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = process.env;
 
 // 로그인
 const login = async (req, res) => {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+        throw new Error('이메일과 비밀번호를 입력하세요.');
+    }
 
     const registeredUser = await User.findOne({ email });
     if (!registeredUser) {
@@ -22,16 +27,26 @@ const login = async (req, res) => {
         throw new Error('비밀번호를 잘못 입력했습니다.');
     }
 
-    const token = jwt.sign({ registeredUser }, SECRET_KEY, { expiresIn: '1h' });
+    const tokenPayload = { _id: registeredUser._id };
+    const accessToken = jwt.sign({ tokenPayload }, ACCESS_TOKEN_SECRET, { expiresIn: '30s' });
+    const refreshToken = jwt.sign({ tokenPayload }, REFRESH_TOKEN_SECRET, { expiresIn: '1m' });
+
+    await Token.create({
+        userId: registeredUser._id,
+        email: registeredUser.email,
+        token: accessToken,
+    });
 
     const cookieOption = {
+        path: '/',
         httpOnly: true,
-        maxAge: 1 * 60 * 60 * 1000,
+        secure: true,
+        maxAge: 1 * 10 * 60 * 1000, // hour * min * sec * ms
     };
 
-    //token 보내기
-    res.cookie('token', token, cookieOption);
-    res.json({ token });
+    // token 보내기
+    res.cookie('refreshToken', refreshToken, cookieOption);
+    res.json({ accessToken });
 };
 
 // 회원가입
@@ -87,14 +102,15 @@ const checkNickname = async (req, res) => {
     });
 };
 
-// request에 cookie 담기는지 테스트용
-// const checkTokenHandler = (req, res) => {
-//     const userToken = req.cookies;
-//     console.log(userToken);
-//     res.json({ message: '성공' });
-// };
-// router.get('/login', checkTokenHandler);
+const getUsers = async (req, res) => {
+    const users = await User.find();
+    if (!users) {
+        throw new Error('가입된 이용자가 없습니다.');
+    }
+    res.json(users);
+};
 
+router.get('/user', verifyLogin, asyncHandler(getUsers));
 router.post('/login', asyncHandler(login));
 router.post('/signup', asyncHandler(signup));
 router.post('/email', asyncHandler(checkEmail));

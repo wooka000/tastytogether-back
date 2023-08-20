@@ -11,7 +11,7 @@ const userSchema = new Schema(
         coverImage: { type: String },
     },
     {
-        collection: 'Users',
+        collection: 'users',
     },
 );
 

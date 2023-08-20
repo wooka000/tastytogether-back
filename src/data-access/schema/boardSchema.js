@@ -28,7 +28,7 @@ const boardListSchema = new Schema(
         },
     },
     {
-        collection: 'boardList',
+        collection: 'Board',
         timestamps: true,
     },
 );

@@ -6,7 +6,7 @@ const commentSchema = new Schema(
             type: Number,
             // ref: 'Users',
             required: true,
-          },
+        },
         content: {
             type: String,
             required: true,
@@ -14,11 +14,11 @@ const commentSchema = new Schema(
         boardId: {
             type: Schema.Types.ObjectId,
             ref: 'Board',
-            required: true
+            required: true,
         },
     },
     {
-        collection: 'comment',
+        collection: 'Comment',
         timestamps: true,
     },
 );

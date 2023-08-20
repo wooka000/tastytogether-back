@@ -1,4 +1,4 @@
 const mongoose = require('mongoose');
-const StoreSchema = require('../schema/store')
+const StoreSchema = require('../schema/storeSchema')
 
 exports.Store = mongoose.model('Store', StoreSchema);

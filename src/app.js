@@ -9,6 +9,7 @@ const { MONGODB_URI } = process.env;
 
 const indexRouter = require('./routes/index');
 const storeDetailRouter = require('./routes/store-detail');
+const mypageRouter = require('./routes/mypage');
 
 const connectToDatabase = async (url) => {
     try {
@@ -35,6 +36,7 @@ app.use(cookieParser());
 
 app.use('/', indexRouter);
 app.use('/stores/detail/:storeId', storeDetailRouter);
+app.use('/mypage', mypageRouter);
 
 app.use((req, res, next) => {
     const error = new Error('Resource Not Found');

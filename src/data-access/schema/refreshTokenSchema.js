@@ -7,10 +7,10 @@ const tokenSchema = new Schema(
     {
         userId: { type: String, required: true },
         email: { type: String, required: true },
-        token: { type: String, required: true },
+        refreshToken: { type: String, required: true },
     },
     {
-        collection: 'tokens',
+        collection: 'RefreshTokens',
     },
 );
 

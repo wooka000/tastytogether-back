@@ -12,10 +12,9 @@ const userSchema = new Schema(
         profileImage: { type: String },
         profileText: { type: String },
         coverImage: { type: String },
-        storeLikeList: [{ type: String }],
     },
     {
-        collection: 'users',
+        collection: 'Users',
     },
 );
 

@@ -1,7 +1,7 @@
 const express = require('express');
 
 const commentRouter = express.Router();
-const Comment = require('../data-access/schema/comment');
+const Comment = require('../data-access/schema/commentSchema');
 
 // eslint-disable-next-line consistent-return
 commentRouter.post('/:id/comments', async (req, res) => {
@@ -24,7 +24,7 @@ commentRouter.post('/:id/comments', async (req, res) => {
 // eslint-disable-next-line consistent-return
 commentRouter.delete('/comments/:id', async (req, res) => {
     try {
-        const comment = await Comment.findOneAndDelete({_id: req.params.id});
+        const comment = await Comment.findOneAndDelete({ _id: req.params.id });
         if (!comment) {
             return res.status(404).end();
         }
@@ -38,13 +38,12 @@ commentRouter.delete('/comments/:id', async (req, res) => {
 commentRouter.get('/:id/comments', async (req, res) => {
     const boardId = req.params.id;
     try {
-      const comments = await Comment.find({ boardId });
-      res.status(200).json(comments);
+        const comments = await Comment.find({ boardId });
+        res.status(200).json(comments);
     } catch (err) {
-      console.error(err.message);
-      res.status(500).end();
+        console.error(err.message);
+        res.status(500).end();
     }
-  });
-
+});
 
 module.exports = commentRouter;

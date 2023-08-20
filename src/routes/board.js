@@ -1,8 +1,8 @@
 const express = require('express');
 
 const boardRouter = express.Router();
-const Board = require('../data-access/schema/board');
-const Comment = require('../data-access/schema/comment');
+const Board = require('../data-access/schema/boardSchema');
+const Comment = require('../data-access/schema/commentSchema');
 
 // 게시글 목록 조회
 // GET /posts
@@ -128,17 +128,17 @@ boardRouter.get('/posts/:id', async (req, res) => {
                 createdAt: board.createdAt,
             },
             comments: comments.map((comment) => ({
-                  // eslint-disable-next-line no-underscore-dangle
-                  id: comment._id,
-                  userId: comment.userId,
-                  boardId: comment.boardId,
-                  content: comment.content,
-                  createdAt: comment.createdAt,
-                  updatedAt: comment.updatedAt,
-                  // eslint-disable-next-line no-underscore-dangle
-                  __v: comment.__v,
-                })),
-            };
+                // eslint-disable-next-line no-underscore-dangle
+                id: comment._id,
+                userId: comment.userId,
+                boardId: comment.boardId,
+                content: comment.content,
+                createdAt: comment.createdAt,
+                updatedAt: comment.updatedAt,
+                // eslint-disable-next-line no-underscore-dangle
+                __v: comment.__v,
+            })),
+        };
 
         res.status(200).json(responseObject);
     } catch (err) {

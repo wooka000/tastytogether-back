@@ -15,7 +15,7 @@ const userSchema = new Schema(
         storeLikeList: [{ type: String }],
     },
     {
-        collection: 'Users',
+        collection: 'users',
     },
 );
 

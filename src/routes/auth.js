@@ -2,9 +2,11 @@ require('dotenv').config();
 const { Router } = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { validationResult } = require('express-validator');
 const asyncHandler = require('../utils/async-handler');
 const { Users, RefreshTokens } = require('../data-access');
 const verifyLogin = require('../middlewares/loginValidator');
+const verifySignUpForm = require('../middlewares/signupFormValidator');
 
 const router = Router();
 const { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = process.env;
@@ -22,14 +24,14 @@ const login = async (req, res) => {
         throw new Error('가입되지 않은 이메일입니다.');
     }
     const checkPassword = await bcrypt.compare(password, registeredUser.password);
-    console.log(checkPassword);
+    console.log('checkPassword', checkPassword);
     if (!checkPassword) {
         throw new Error('비밀번호를 잘못 입력했습니다.');
     }
 
     const tokenPayload = { _id: registeredUser._id, email: registeredUser.email };
-    console.log(tokenPayload);
-    const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
+    console.log('JWT Payload', tokenPayload);
+    const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, { expiresIn: '1m' });
     const refreshToken = jwt.sign(tokenPayload, REFRESH_TOKEN_SECRET, { expiresIn: '30m' });
 
     await RefreshTokens.create({
@@ -41,6 +43,7 @@ const login = async (req, res) => {
     const cookieOption = {
         path: '/',
         httpOnly: true,
+        sameSite: 'None',
         secure: true,
         maxAge: 1 * 30 * 60 * 1000, // hour * min * sec * ms
     };
@@ -48,13 +51,20 @@ const login = async (req, res) => {
     // refresh token cookie에 보내기
     res.cookie('refreshToken', refreshToken, cookieOption);
     // access token body에 보내기
-    res.json({ accessToken });
+    res.json({ userId: registeredUser._id, email: registeredUser.email, accessToken });
 };
 
 // 회원가입
 const signup = async (req, res) => {
+    const errors = validationResult(req);
+
+    // validationResult 객체
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
     const { email, password, nickname, name } = req.body;
-    console.log(req.body);
+    console.log('request body', req.body);
     // 이메일, 닉네임 중복여부
 
     const checkEmail = await Users.findOne({ $or: [{ email }, { nickname }] });
@@ -110,10 +120,9 @@ const getUsers = async (req, res) => {
         throw new Error('가입된 이용자가 없습니다.');
     }
     res.json(users);
-    console.log(req.cookies);
 };
 
-// refreshToken controller
+// refreshToken 확인 후 accessToken 재발행
 
 const issueNewAccessTokenByRefreshToken = async (req, res) => {
     const { refreshToken } = req.cookies;
@@ -127,8 +136,8 @@ const issueNewAccessTokenByRefreshToken = async (req, res) => {
         if (err) {
             throw new Error('인증이 잘 안된다.');
         }
-        console.log(foundUser);
-        console.log(decoded);
+        console.log('user in DB', foundUser);
+        console.log('decoded Payload', decoded);
         if (foundUser.email !== decoded.email) {
             throw new Error('인증 실패하였습니다');
         }
@@ -136,12 +145,14 @@ const issueNewAccessTokenByRefreshToken = async (req, res) => {
         const tokenPayload = { _id: foundUser.userId, email: foundUser.email };
 
         const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, {
-            expiresIn: '10m',
+            expiresIn: '1m',
         });
 
         res.json({ accessToken });
     });
 };
+
+// 로그아웃 - refreshToken 삭제
 
 const logout = async (req, res) => {
     // on Client, also delete the accessToken
@@ -153,21 +164,15 @@ const logout = async (req, res) => {
 
     // req.cookies에 refreshToken 있는 경우
 
-    const response = await RefreshTokens.findOneAndDelete({ refreshToken });
-    console.log(response);
-    res.clearCookie('refreshToken', { httpOnly: true, maxAge: 1 * 30 * 60 * 1000 });
+    const deletedUser = await RefreshTokens.findOneAndDelete({ refreshToken });
+    console.log('deleted User', deletedUser);
+    res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'None', secure: true });
     return res.sendStatus(204); // no content
-
-    // const foundUser = await RefreshTokens.findOne({ refreshToken });
-    // if (!foundUser) {
-    //     res.clearCookie('refreshToken', { httpOnly: true, maxAge: 1 * 30 * 60 * 1000 });
-    //     return res.sendStatus(204); // no content
-    // }
 };
 
 router.get('/user', verifyLogin, asyncHandler(getUsers));
 router.post('/login', asyncHandler(login));
-router.post('/signup', asyncHandler(signup));
+router.post('/signup', verifySignUpForm, asyncHandler(signup));
 router.post('/email', asyncHandler(checkEmail));
 router.post('/nickname', asyncHandler(checkNickname));
 router.get('/refreshtoken', asyncHandler(issueNewAccessTokenByRefreshToken));

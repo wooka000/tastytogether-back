@@ -3,8 +3,8 @@ const { Router } = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const asyncHandler = require('../utils/async-handler');
-const { User, Token } = require('../data-access');
-const verifyLogin = require('../middlewares/login_validator');
+const { Users, RefreshTokens } = require('../data-access');
+const verifyLogin = require('../middlewares/loginValidator');
 
 const router = Router();
 const { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = process.env;
@@ -17,7 +17,7 @@ const login = async (req, res) => {
         throw new Error('이메일과 비밀번호를 입력하세요.');
     }
 
-    const registeredUser = await User.findOne({ email });
+    const registeredUser = await Users.findOne({ email });
     if (!registeredUser) {
         throw new Error('가입되지 않은 이메일입니다.');
     }
@@ -30,23 +30,24 @@ const login = async (req, res) => {
     const tokenPayload = { _id: registeredUser._id, email: registeredUser.email };
     console.log(tokenPayload);
     const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
-    const refreshToken = jwt.sign(tokenPayload, REFRESH_TOKEN_SECRET, { expiresIn: '1h' });
+    const refreshToken = jwt.sign(tokenPayload, REFRESH_TOKEN_SECRET, { expiresIn: '30m' });
 
-    await Token.create({
+    await RefreshTokens.create({
         userId: registeredUser._id,
         email: registeredUser.email,
-        token: refreshToken,
+        refreshToken,
     });
 
     const cookieOption = {
         path: '/',
         httpOnly: true,
         secure: true,
-        maxAge: 1 * 10 * 60 * 1000, // hour * min * sec * ms
+        maxAge: 1 * 30 * 60 * 1000, // hour * min * sec * ms
     };
 
-    // token 보내기
+    // refresh token cookie에 보내기
     res.cookie('refreshToken', refreshToken, cookieOption);
+    // access token body에 보내기
     res.json({ accessToken });
 };
 
@@ -56,7 +57,7 @@ const signup = async (req, res) => {
     console.log(req.body);
     // 이메일, 닉네임 중복여부
 
-    const checkEmail = await User.findOne({ $or: [{ email }, { nickname }] });
+    const checkEmail = await Users.findOne({ $or: [{ email }, { nickname }] });
     if (checkEmail) {
         throw new Error('이메일 또는 닉네임이 중복되었습니다.');
     }
@@ -70,7 +71,7 @@ const signup = async (req, res) => {
         name,
     };
 
-    await User.create(newUser);
+    await Users.create(newUser);
 
     res.status(200).json({ newUser });
 };
@@ -78,7 +79,7 @@ const signup = async (req, res) => {
 // 이메일 중복검사
 const checkEmail = async (req, res) => {
     const { email } = req.body;
-    const checkResult = await User.findOne({ email });
+    const checkResult = await Users.findOne({ email });
 
     if (checkResult) {
         throw new Error('이미 사용 중인 이메일입니다.');
@@ -92,7 +93,7 @@ const checkEmail = async (req, res) => {
 // 닉네임 중복검사
 const checkNickname = async (req, res) => {
     const { nickname } = req.body;
-    const checkResult = await User.findOne({ nickname });
+    const checkResult = await Users.findOne({ nickname });
 
     if (checkResult) {
         throw new Error('이미 사용 중인 닉네임입니다.');
@@ -104,11 +105,64 @@ const checkNickname = async (req, res) => {
 };
 
 const getUsers = async (req, res) => {
-    const users = await User.find();
+    const users = await Users.find();
     if (!users) {
         throw new Error('가입된 이용자가 없습니다.');
     }
     res.json(users);
+    console.log(req.cookies);
+};
+
+// refreshToken controller
+
+const issueNewAccessTokenByRefreshToken = async (req, res) => {
+    const { refreshToken } = req.cookies;
+
+    if (!req.cookies?.refreshToken) return res.sendStatus(401);
+    const foundUser = await RefreshTokens.findOne({ refreshToken });
+    if (!foundUser) {
+        throw new Error('로그인 정보가 업습니다.');
+    }
+    jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            throw new Error('인증이 잘 안된다.');
+        }
+        console.log(foundUser);
+        console.log(decoded);
+        if (foundUser.email !== decoded.email) {
+            throw new Error('인증 실패하였습니다');
+        }
+
+        const tokenPayload = { _id: foundUser.userId, email: foundUser.email };
+
+        const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, {
+            expiresIn: '10m',
+        });
+
+        res.json({ accessToken });
+    });
+};
+
+const logout = async (req, res) => {
+    // on Client, also delete the accessToken
+    // on Back, delete the refreshToken
+
+    //  req.cookies에 refreshToken 없는 경우
+    const { refreshToken } = req.cookies;
+    if (!req.cookies?.refreshToken) return res.sendStatus(204); // no content
+
+    // req.cookies에 refreshToken 있는 경우
+
+    const response = await RefreshTokens.findOneAndDelete({ refreshToken });
+    console.log(response);
+    res.clearCookie('refreshToken', { httpOnly: true, maxAge: 1 * 30 * 60 * 1000 });
+    return res.sendStatus(204); // no content
+
+    // const foundUser = await RefreshTokens.findOne({ refreshToken });
+    // if (!foundUser) {
+    //     res.clearCookie('refreshToken', { httpOnly: true, maxAge: 1 * 30 * 60 * 1000 });
+    //     return res.sendStatus(204); // no content
+    // }
 };
 
 router.get('/user', verifyLogin, asyncHandler(getUsers));
@@ -116,5 +170,6 @@ router.post('/login', asyncHandler(login));
 router.post('/signup', asyncHandler(signup));
 router.post('/email', asyncHandler(checkEmail));
 router.post('/nickname', asyncHandler(checkNickname));
-
+router.get('/refreshtoken', asyncHandler(issueNewAccessTokenByRefreshToken));
+router.get('/logout', asyncHandler(logout));
 module.exports = router;

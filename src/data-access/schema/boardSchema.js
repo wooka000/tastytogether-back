@@ -1,8 +1,9 @@
-const { Schema,model } = require('mongoose');
+const { Schema } = require('mongoose');
 
 const boardListSchema = new Schema(
     {
         userId: {
+             // type: Schema.Types.ObjectId,
             type: Number,
             // ref: 'User',
             required: true,
@@ -32,4 +33,4 @@ const boardListSchema = new Schema(
     },
 );
 
-module.exports = model('Board', boardListSchema);
+module.exports = boardListSchema;

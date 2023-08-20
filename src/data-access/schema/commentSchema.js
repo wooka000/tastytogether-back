@@ -1,4 +1,4 @@
-const { Schema,model } = require('mongoose');
+const { Schema } = require('mongoose');
 
 const commentSchema = new Schema(
     {
@@ -23,4 +23,4 @@ const commentSchema = new Schema(
     },
 );
 
-module.exports = model('Commnet', commentSchema);
+module.exports = commentSchema;

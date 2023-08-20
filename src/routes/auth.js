@@ -27,14 +27,15 @@ const login = async (req, res) => {
         throw new Error('비밀번호를 잘못 입력했습니다.');
     }
 
-    const tokenPayload = { _id: registeredUser._id };
-    const accessToken = jwt.sign({ tokenPayload }, ACCESS_TOKEN_SECRET, { expiresIn: '30s' });
-    const refreshToken = jwt.sign({ tokenPayload }, REFRESH_TOKEN_SECRET, { expiresIn: '1m' });
+    const tokenPayload = { _id: registeredUser._id, email: registeredUser.email };
+    console.log(tokenPayload);
+    const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
+    const refreshToken = jwt.sign(tokenPayload, REFRESH_TOKEN_SECRET, { expiresIn: '1h' });
 
     await Token.create({
         userId: registeredUser._id,
         email: registeredUser.email,
-        token: accessToken,
+        token: refreshToken,
     });
 
     const cookieOption = {

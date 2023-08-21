@@ -11,8 +11,18 @@ router.patch(
     '/:userid',
     asyncHandler(async (req, res) => {
         const { userid } = req.params;
+        const { name, nickname, profileText, password } = req.body;
+        const result = await Users.findOneAndUpdate(
+            { id: userid },
+            {
+                name,
+                nickname,
+                profileText,
+                password,
+            },
+        );
         console.log(res);
-        req.json(userid);
+        req.json(result);
     }),
 );
 

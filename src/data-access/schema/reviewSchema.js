@@ -8,7 +8,7 @@ const reviewSchema = new Mongoose.Schema(
         username: { type: String, require: true },
         storeId: { type: String, require: true },
     },
-    { timestamps: true, collection: 'review' }, // createdAt
+    { timestamps: true, collection: 'Review' }, // createdAt
 );
 
 module.exports = reviewSchema;

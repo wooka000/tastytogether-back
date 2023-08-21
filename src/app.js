@@ -9,6 +9,12 @@ const { MONGODB_URI } = process.env;
 
 const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
+const mypageRouter = require('./routes/mypage');
+const storeRoutes = require('./routes/storeRoutes');
+const storeDetailRouter = require('./routes/storeDetail');
+const reviewRouter = require('./routes/review');
+const boardRouter = require('./routes/board');
+const commentRouter = require('./routes/comment');
 
 const connectToDatabase = async (url) => {
     try {
@@ -29,6 +35,8 @@ const corsOption = { origin: 'http://localhost:3000', credentials: true };
 
 connectToDatabase(url);
 
+const corsOption = { origin: 'http://localhost:3000', credentials: true };
+
 const app = express();
 
 app.use(express.json());
@@ -39,6 +47,13 @@ app.use('/public/image', express.static(path.join('public', 'image')));
 
 app.use('/auth', authRouter);
 app.use('/', indexRouter);
+app.use('/auth', authRouter);
+app.use('/mypage', mypageRouter);
+app.use('/stores/detail', storeDetailRouter);
+app.use('/review', reviewRouter);
+app.use('/', boardRouter);
+app.use('/', commentRouter);
+app.use('/api', storeRoutes);
 
 app.use((req, res, next) => {
     const error = new Error('Resource Not Found');

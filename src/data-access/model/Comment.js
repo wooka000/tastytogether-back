@@ -4,4 +4,4 @@ const mongoose = require('mongoose');
 const commentSchema = require ('../schema/commentSchema.js')
 
 
-module.exports = mongoose.model('Commnet', commentSchema);
+module.exports = mongoose.model('Comment', commentSchema);

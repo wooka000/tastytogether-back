@@ -50,7 +50,7 @@ app.use('/stores/detail', storeDetailRouter);
 app.use('/review', reviewRouter);
 app.use('/', boardRouter);
 app.use('/', commentRouter);
-app.use('/api', storeRoutes);
+app.use('/stores', storeRoutes);
 
 app.use((req, res, next) => {
     const error = new Error('Resource Not Found');

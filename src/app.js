@@ -10,7 +10,7 @@ const { MONGODB_URI } = process.env;
 const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
 const mypageRouter = require('./routes/mypage');
-const storeRoutes = require('./routes/storeRoutes')
+const storeRoutes = require('./routes/storeRoutes');
 const storeDetailRouter = require('./routes/storeDetail');
 const reviewRouter = require('./routes/review');
 const boardRouter = require('./routes/board');
@@ -38,7 +38,7 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors());
+app.use(cors(corsOption));
 app.use(cookieParser());
 
 app.use('/', indexRouter);

@@ -58,7 +58,7 @@ const signup = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password, nickname, name } = req.body;
+    const { email, password, nickname, name, profileText = null } = req.body;
 
     // 이메일, 닉네임 중복여부
     const checkEmail = await Users.findOne({ $or: [{ email }, { nickname }] });
@@ -67,12 +67,14 @@ const signup = async (req, res) => {
     }
 
     const hashedPassword = (await bcrypt.hash(password, 12)).toString();
-
+    console.log(req.file);
     const newUser = {
         nickname,
         email,
         password: hashedPassword,
         name,
+        profileImage: req.file.path,
+        profileText,
     };
 
     await Users.create(newUser);

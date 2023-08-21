@@ -8,7 +8,6 @@ const userSchema = new Schema(
         nickname: { type: String, required: true },
         profileImage: { type: String },
         profileText: { type: String },
-        isAdmin: { type: Boolean, required: false },
         coverImage: { type: String },
     },
     {

@@ -1,5 +1,5 @@
 require('dotenv').config();
-
+const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -35,6 +35,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors(corsOption));
 app.use(cookieParser());
+app.use('/public/image', express.static(path.join('public', 'image')));
 
 app.use('/auth', authRouter);
 app.use('/', indexRouter);

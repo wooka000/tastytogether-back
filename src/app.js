@@ -1,5 +1,5 @@
 require('dotenv').config();
-
+const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -30,9 +30,10 @@ const connectToDatabase = async (url) => {
 };
 
 const url = MONGODB_URI;
-connectToDatabase(url);
 
 const corsOption = { origin: 'http://localhost:3000', credentials: true };
+
+connectToDatabase(url);
 
 const app = express();
 
@@ -40,7 +41,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors(corsOption));
 app.use(cookieParser());
+app.use('/public/image', express.static(path.join('public', 'image')));
 
+app.use('/auth', authRouter);
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
 app.use('/mypage', mypageRouter);

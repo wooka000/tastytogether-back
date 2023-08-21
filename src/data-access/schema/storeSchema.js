@@ -9,11 +9,11 @@ const StoreSchema = new Schema(
             required: true,
         },
         address: {
-            type: mongoose.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             required: true,
             ref: 'Address',
         },
-        storeType: {
+        type: {
             type: String,
             required: true,
         },
@@ -23,7 +23,7 @@ const StoreSchema = new Schema(
         },
         menuItems: [
             {
-                type: mongoose.Types.ObjectId,
+                type: Schema.Types.ObjectId,
                 ref: 'MenuItems',
             },
         ],
@@ -43,8 +43,8 @@ const StoreSchema = new Schema(
             type: Array,
             required: true,
         },
-        bannerImage: {
-            type: String,
+        banners: {
+            type: Array,
             required: true,
         },
         starRating: {

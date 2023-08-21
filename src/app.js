@@ -45,7 +45,6 @@ app.use('/public/image', express.static(path.join('public', 'image')));
 
 app.use('/auth', authRouter);
 app.use('/', indexRouter);
-app.use('/auth', authRouter);
 app.use('/mypage', mypageRouter);
 app.use('/stores/detail', storeDetailRouter);
 app.use('/review', reviewRouter);

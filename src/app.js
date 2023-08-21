@@ -61,13 +61,13 @@ app.use((req, res, next) => {
     next(error);
 });
 
-app.use((err, req, res) => {
+app.use((err, res) => {
     console.error(err);
     res.status(err.statusCode || 500);
     res.json({ status: err.status, reason: err.message });
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`정상적으로 TastyTogether 서버를 시작하였습니다.  http://localhost:${PORT}`);
 });

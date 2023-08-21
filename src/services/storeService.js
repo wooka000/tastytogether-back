@@ -1,63 +1,51 @@
-const { Store, menuItems } = require('../data-access');
+
+const { Store } = require('../data-access');
 // 허스키 eslint로 인해 잠시 주석 처리
 // const { Store, Review, menuItems } = require('../data-access');
 
-// ?????????
+
+const checkStore = async (req, res) => {
+    const { name, address } = req.body;
+    
+    const checkName = await Store.findOne({ name });
+    const checkAddress = await Store.findOne({ address });
+    
+    if (checkName && checkAddress) {
+        const error = new Error('이미 같은 가게가 존재합니다.');
+        error.statusCode = 409;
+        res.status(409).send(error.message);
+    } else {
+        res.status(200).send('가게 확인 완료');
+    }
+};
+
 const createStore = async (req, res) => {
     const {
-        name,
-        address,
-        storeType,
-        phone,
-        priceRange,
-        parkingInfo,
-        businessHours,
-        closedDays,
+        name, 
+        address, 
+        storeType, 
+        phone, 
+        menuItems,
+        priceRange, 
+        parkingInfo, 
+        businessHours, 
+        closedDays, 
         bannerImage,
     } = req.body;
 
     const regPhone = /^\d{2,4}-\d{3,4}-\d{4}$/;
-    if (!regPhone.test(phone)) {
-        const error = new Error('전화번호 형식에 맞게 작성해주세요.');
-        error.statusCode = 400;
-        throw error;
-    }
-    // 해당 값이 없는 경우 에러를 보여주다.
-    if (!address) {
-        const error = new Error('주소를 확인하세요');
-        error.statusCode = 400;
-        throw error;
-    }
-    if (!storeType) {
-        const error = new Error('업종을 작성해주세요');
-        error.statusCode = 400;
-        throw error;
-    }
-    if (!priceRange) {
-        const error = new Error('가격대를 작성해주세요');
-        error.statusCode = 400;
-        throw error;
-    }
-    if (!parkingInfo) {
-        const error = new Error('주차정보를 작성해주세요');
-        error.statusCode = 400;
-        throw error;
-    }
-    if (!closedDays) {
-        const error = new Error('휴무일을 작성해주세요');
-        error.statusCode = 400;
-        throw error;
-    }
-    if (!menuItems) {
-        const error = new Error('대표메뉴를 확인하세요');
-        error.statusCode = 400;
-        throw error;
-    } else if (!bannerImage) {
-        const error = new Error('이미지를 업로드해주세요');
-        error.statusCode = 400;
-        throw error;
-    }
-
+    if(!regPhone.test(phone)
+        || !address
+        || !storeType
+        || !priceRange
+        || !parkingInfo
+        || !closedDays
+        || !menuItems
+        || !bannerImage
+    ){return res.status(400).json({ error: '입력하지 않은 값이 존재합니다.' });}
+    // 새로운 가게 정보를 DB에 생성
+    // 필수값이 아니면 0 또는 []이 기본값이 된다.
+    // 새로운 가게 정보를 DB에 생성
     await Store.create({
         name,
         address,
@@ -69,51 +57,44 @@ const createStore = async (req, res) => {
         businessHours,
         closedDays,
         bannerImage,
+        starRating: 0,
+        viewCount: 0,
         reviews: [],
         storeLikes: [],
-    });
-    res.status(201).send('가게 정보가 등록되었습니다.');
+    }); 
+    return res.status(201).json({ message: '가게 정보가 등록되었습니다.' });
 };
 
 // 가게 검색하는 경우(기본 정렬 적용)
-const searchStores = async (req, res) => {
-    const keyword = req.query.storesearch;
-    // const starRating = req.query.starrating; // starRating 파라미터가 필요한 경우
+async function searchStores (req, res) {
+    const keyword = req.query
 
     if (keyword) {
         const searchStoreList = await Store.find({
             $or: [
-                { name: { $regex: keyword, $options: 'i' } },
+                { 'name': { $regex: keyword, $options: 'i' } },
                 { 'address.city': { $regex: keyword, $options: 'i' } },
                 { 'address.street': { $regex: keyword, $options: 'i' } },
                 { 'address.state': { $regex: keyword, $options: 'i' } },
-                { 'menuItems.itemName': { $regex: keyword, $options: 'i' } },
-            ],
+                { 'storeType': { $regex: keyword, $options: 'i' } }
+            ]
         });
-
         // searchStoreList.sort(async (a, b) => {
-        //     const aReviewCount = await Review.countDocuments({ storeId: a._id });
-        //     const bReviewCount = await Review.countDocuments({ storeId: b._id });
-        //     const aStoreLike = await Store.findOne({ storeId: a._id }); // StoreLike관련
-        //     const bStoreLike = await Store.findOne({ storeId: b._id });
-
         //     if (starRating) {
         //         return b.starRating - a.starRating;
-        //     } else if (aReviewCount && bReviewCount) bReviewCount - aReviewCount;
-        //     else if (aStoreLike && bStoreLike) {
-        //         return bStoreLike.count - aStoreLike.count;
-        //     } else {
-        //         a.name.localeCompare(b.name);
+        //     } else if(Review.reviews){
+        //         return b.Review.reviews.length - a.Review.reviews.length;
+        //     } else if(storeLikes){
+        //         return b.User.storeLikes.length - b.User.storeLikes.length;
         //     }
         // });
-
-        res.render('storesearch', { keyword, searchStoreList });
+        res.json({ searchStoreList });
     } else {
-        res.render('storesearch', { keyword, searchStoreList: [] });
-    }
-};
+        res.json({ searchStoreList: [] });};
+}
+
 // 맛집찾기 필터(업종, 지역)
-const filterStores = async (req, res) => {
+async function filterStores(req, res) {
     const typeFilter = req.query.type;
     const regionFilter = req.query.region;
 
@@ -121,40 +102,84 @@ const filterStores = async (req, res) => {
 
     if (typeFilter) {
         filter.storeType = typeFilter;
-    }
-    if (regionFilter) {
+    };
+    if(regionFilter) {
         const subRegions = regionFilter.split('/');
 
-        // filter[Address.city] = subRegions[0];
+        // filter['Address.city'] = subRegions[0];
 
-        if (subRegions.length > 1) {
-            // filter[Address.state] = subRegions[1];
+        if(subRegions.length > 1){
+            // filter['Address.state'] = subRegions[1];
         }
     }
     // 필터 조건에 따른 가게 리스트 가져오기
-    // const filterStoreList = await Store.find(filter);
+    // let filterStoreList = await Store.find(filter);
 
-    // 가게 리스트 기본 정렬: 1. 리뷰순, 2. 좋아요순, 3. 가게 이름순
-//     filterStoreList.sort(async (a, b) => {
-        // const aReviewCount = await Review.countDocuments({ storeId: a._id });
-        // const bReviewCount = await Review.countDocuments({ storeId: b._id });
-        // const aStoreLike = await Store.findOne({ storeId: a._id }); // StoreLike
-        // const bStoreLike = await Store.findOne({ storeId: b._id });
-
-        // if (starRating) {
-        //     return b.starRating - a.starRating;
-        // } else if (aReviewCount && bReviewCount) {
-        //     return bReviewCount - aReviewCount;
-        // } else if (aStoreLike && bStoreLike) {
-        //     return bStoreLike.count - aStoreLike.count;
-        // } else {
-        //     return a.name.localeCompare(b.name);
-        // }
+    // 가게 리스트 기본 정렬: 1. 별점순, 2. 리뷰순, 3. 좋아요순
+    // filterStoreList.sort(async (a, b) => {
+    //     if (starRating) {
+    //         return b.starRating - a.starRating;
+    //     } else if(Review.reviews){
+    //         return b.Review.reviews.length - a.Review.reviews.length;
+    //     } else if(storeLikes){
+    //         return b.User.storeLikes.length - b.User.storeLikes.length;
+    //     }
     // });
-//     res.render('storesearch', { filterStoreList });
-//     res.json({ filterStoreList });
-// eslint로 인한 임시 코드
-res.send()
+    // res.render('storesearch', { filterStoreList: filterStoreList });
+    // res.json({ filterStoreList })
+    // 임시로 res 사용
+    res.send()
 };
 
-module.exports = { createStore, searchStores, filterStores }
+module.exports = { checkStore, createStore, searchStores, filterStores }
+
+// 임시데이터
+// let stores = [
+// {
+//     "name": "스타벅스 본사",
+//     "address": [{
+//         "street": "퇴계로 100 9층",
+//         "city": "서울",
+//         "state": "중구",
+//         "zipCode": "04631",
+//         "latitude": 496227,
+//         "longitude": 1128062
+//     }],
+//     "storeType": "커피.디저트",
+//     "phone": "1522-3232",
+//     "menuItems": [
+//         {"itemName": "아메리카노", "itemPrice": "4500원"},
+//         {"itemName": "콜드브루", "itemPrice": "5000원"},
+//         {"itemName": "돌체라떼", "itemPrice": "5500원"}
+//     ],
+//     "priceRange": "5천원대",
+//     "parkingInfo": "무료주차",
+//     "businessHours": ["09", "30", "10", "00"],
+//     "closedDays": ["연중무휴"],
+//     "bannerImage": "public/image/ex1.png"
+// },
+// {
+//     "name": "민락돼지국밥",
+//     "address": [{
+//         "street": "광안해변호277번길 28-13",
+//         "city": "부산",
+//         "state": "수영구",
+//         "zipCode": "48287",
+//         "latitude": 983940,
+//         "longitude": 466520
+//     }],
+//     "storeType": "한식",
+//     "phone": "051-754-2988",
+//     "menuItems": [
+//         {"itemName": "돼지국밥", "itemPrice": "8000원"},
+//         {"itemName": "살고기국밥", "itemPrice": "8000원"},
+//         {"itemName": "수육", "itemPrice": "22000원"}
+//     ],
+//     "priceRange": "5천원대",
+//     "parkingInfo": "무료주차",
+//     "businessHours": ["09", "30", "10", "00"],
+//     "closedDays": ["연중무휴"],
+//     "bannerImage": "public/image/ex1.png"
+// },
+
+// ]

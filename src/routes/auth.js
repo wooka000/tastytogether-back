@@ -2,6 +2,7 @@ require('dotenv').config();
 const { Router } = require('express');
 const asyncHandler = require('../utils/async-handler');
 const verifySignUpForm = require('../middlewares/signupFormValidator');
+const uploadImageFile = require('../middlewares/imageUploader');
 const authController = require('../services/authController');
 
 const router = Router();
@@ -20,7 +21,12 @@ const router = Router();
 // router.get('/user', verifyLogin, asyncHandler(getUsers));
 
 router.post('/login', asyncHandler(authController.login));
-router.post('/signup', verifySignUpForm, asyncHandler(authController.signup));
+router.post(
+    '/signup',
+    uploadImageFile.single('profileImage'),
+    verifySignUpForm,
+    asyncHandler(authController.signup),
+);
 router.post('/email', asyncHandler(authController.checkEmail));
 router.post('/nickname', asyncHandler(authController.checkNickname));
 router.get('/refreshtoken', asyncHandler(authController.issueNewAccessTokenByRefreshToken));

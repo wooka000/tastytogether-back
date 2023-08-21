@@ -117,7 +117,7 @@ const issueNewAccessTokenByRefreshToken = async (req, res) => {
     if (!req.cookies?.refreshToken) return res.sendStatus(401);
     const foundUser = await RefreshTokens.findOne({ refreshToken });
     if (!foundUser) {
-        throw new Error('로그인 정보가 업습니다.');
+        throw new Error('로그인 정보가 없습니다.');
     }
     jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, decoded) => {
         if (err) {

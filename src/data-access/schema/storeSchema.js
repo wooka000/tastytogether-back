@@ -64,7 +64,7 @@ const StoreSchema = new Schema(
         storeLikes: [
             {
                 type: Schema.Types.ObjectId,
-                ref: 'User',
+                ref: 'Users',
             },
         ],
     },

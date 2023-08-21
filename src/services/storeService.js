@@ -1,17 +1,16 @@
 
-const checkDuplicate = async ({ name, street }) => {
-    const streetData = await Store.findOne({ name }).populate('address', 'street');
-    if (!streetData) {
-        return false;
-    }
-    return streetData.address.street === street;
-};
+const { Store } = require('../data-access');
+// 허스키 eslint로 인해 잠시 주석 처리
+// const { Store, Review, menuItems } = require('../data-access');
 
-// 가게 정보 중복 체크 api
-const checkStore = asyncHandler(async (req, res) => {
-    const { name, street } = req.body;
 
-    if (await checkDuplicate({ name, street })) {
+const checkStore = async (req, res) => {
+    const { name, address } = req.body;
+    
+    const checkName = await Store.findOne({ name });
+    const checkAddress = await Store.findOne({ address });
+    
+    if (checkName && checkAddress) {
         const error = new Error('이미 같은 가게가 존재합니다.');
         error.statusCode = 409;
         throw error;
@@ -20,8 +19,7 @@ const checkStore = asyncHandler(async (req, res) => {
     }
 });
 
-// 가게 등록 api
-const createStore = asyncHandler(async (req, res) => {
+const createStore = async (req, res) => {
     const {
         name,
         street,
@@ -40,19 +38,37 @@ const createStore = asyncHandler(async (req, res) => {
         banners,
     } = req.body;
 
-    const regPhone = /^\d{2,4}-\d{3,4}-\d{4}$/;
-    if(!regPhone.test(phone)
-        || !address
-        || !storeType
-        || !priceRange
-        || !parkingInfo
-        || !closedDays
-        || !menuItems
-        || !bannerImage
-    ){return res.status(400).json({ error: '입력하지 않은 값이 존재합니다.' });}
-    // 새로운 가게 정보를 DB에 생성
-    // 필수값이 아니면 0 또는 []이 기본값이 된다.
-    // 새로운 가게 정보를 DB에 생성
+    if (
+        !name ||
+        !street ||
+        !city ||
+        !state ||
+        !zipCode ||
+        !latitude ||
+        !longitude ||
+        !type ||
+        !phone ||
+        !menuItems ||
+        !priceRange ||
+        !parkingInfo ||
+        !businessHours ||
+        !closedDays ||
+        !banners
+    ) {
+        const error = new Error('입력하지 않은 값이 존재합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
+    if (!isValidPhoneNumber(phone)) {
+        const error = new Error('전화번호 형식에 맞게 작성해주세요.');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const newMenuItems = await MenuItems.insertMany(menuItems);
+    const newMenuItemsIdList = newMenuItems.map((el) => el._id);
+    const newAddress = await Address.create({ street, city, state, zipCode, latitude, longitude });
+
     await Store.create({
         name,
         address: newAddress._id,
@@ -68,9 +84,9 @@ const createStore = asyncHandler(async (req, res) => {
         viewCount: 0,
         reviews: [],
         storeLikes: [],
-    });
-    return res.sendStatus(201);
-});
+    }); 
+    return res.status(201).json({ message: '가게 정보가 등록되었습니다.' });
+};
 
 // 가게 검색하는 경우(기본 정렬 적용)
 // async function searchStores(req, res) {

@@ -4,8 +4,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const boardRouter = require('./routes/board')
-const commentRouter = require('./routes/comment')
 
 const { MONGODB_URI } = process.env;
 
@@ -73,3 +71,4 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
     console.log(`정상적으로 TastyTogether 서버를 시작하였습니다.  http://localhost:${PORT}`);
 });
+

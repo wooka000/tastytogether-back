@@ -4,12 +4,11 @@ const boardListSchema = new Schema(
     {
         userId: {
             type: Schema.Types.ObjectId,
-            ref: 'User',
+            ref: 'Users',
             required: true,
         },
-        storeId: {
-            type: Schema.Types.ObjectId,
-            ref: 'Store',
+        region: {
+            type: String,
             required: true,
         },
         title: {
@@ -21,6 +20,10 @@ const boardListSchema = new Schema(
             required: true,
         },
         meetDate: {
+            type: String,
+            required: true,
+        },
+        image: {
             type: String,
             required: true,
         },

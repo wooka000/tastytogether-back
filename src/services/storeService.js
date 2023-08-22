@@ -43,9 +43,7 @@ const createStore = async (req, res) => {
         || !menuItems
         || !bannerImage
     ){return res.status(400).json({ error: '입력하지 않은 값이 존재합니다.' });}
-    // 새로운 가게 정보를 DB에 생성
-    // 필수값이 아니면 0 또는 []이 기본값이 된다.
-    // 새로운 가게 정보를 DB에 생성
+   
     await Store.create({
         name,
         address,

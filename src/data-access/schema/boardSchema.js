@@ -4,7 +4,7 @@ const boardListSchema = new Schema(
     {
         userId: {
             type: Schema.Types.ObjectId,
-            ref: 'Users',
+            ref: 'User',
             required: true,
         },
         region: {

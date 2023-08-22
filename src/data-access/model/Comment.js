@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 // eslint-disable-next-line import/extensions
-const commentSchema = require ('../schema/commentSchema.js')
+const commentSchema = require('../schema/commentSchema.js');
 
-
-module.exports = mongoose.model('Comment', commentSchema);
+exports.Comment = mongoose.model('Comment', commentSchema);

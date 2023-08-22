@@ -1,9 +1,6 @@
 const mongoose = require('mongoose');
 
 // eslint-disable-next-line import/extensions
-const boardListSchema = require ('../schema/boardSchema.js')
+const boardListSchema = require('../schema/boardSchema.js');
 
-
-module.exports = mongoose.model('Board', boardListSchema);
-
-
+exports.Board = mongoose.model('Board', boardListSchema);

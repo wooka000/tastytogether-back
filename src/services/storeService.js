@@ -7,6 +7,7 @@ const checkDuplicate = async ({ name, street }) => {
     return streetData.address.street === street;
 };
 
+// 가게 정보 중복 체크 api
 const checkStore = asyncHandler(async (req, res) => {
     const { name, street } = req.body;
 
@@ -19,6 +20,7 @@ const checkStore = asyncHandler(async (req, res) => {
     }
 });
 
+// 가게 등록 api
 const createStore = asyncHandler(async (req, res) => {
     const {
         name,
@@ -67,7 +69,7 @@ const createStore = asyncHandler(async (req, res) => {
         reviews: [],
         storeLikes: [],
     });
-    return res.status(201).json({ message: '가게 정보가 등록되었습니다.' });
+    return res.sendStatus(201);
 });
 
 // 가게 검색하는 경우(기본 정렬 적용)

@@ -46,7 +46,12 @@ const login = async (req, res) => {
     // refresh token cookie에 보내기
     res.cookie('refreshToken', refreshToken, cookieOption);
     // access token body에 보내기
-    res.json({ userId: registeredUser._id, email: registeredUser.email, accessToken });
+    res.json({
+        userId: registeredUser._id,
+        nickname: registeredUser.nickname,
+        profileImage: registeredUser.profileImage,
+        accessToken,
+    });
 };
 
 // 회원가입
@@ -66,14 +71,16 @@ const signup = async (req, res) => {
         throw new Error('이메일 또는 닉네임이 중복되었습니다.');
     }
 
-    const hashedPassword = (await bcrypt.hash(password, 12)).toString();
+    const hashingSalt = await bcrypt.genSaltSync();
+
+    const hashedPassword = (await bcrypt.hashSync(password, hashingSalt)).toString();
     console.log(req.file);
     const newUser = {
         nickname,
         email,
         password: hashedPassword,
         name,
-        profileImage: req.file.path,
+        profileImage: req.file.location,
         profileText,
     };
 

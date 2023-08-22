@@ -124,34 +124,55 @@ const createStore = asyncHandler(async (req, res) => {
     return res.sendStatus(201);
 });
 
-// 가게 검색하는 경우(기본 정렬 적용)
-// async function searchStores(req, res) {
-//     const keyword = req.query;
+// 가게 검색 api
+const searchStores = asyncHandler(async (req, res) => {
+    const { keyword } = req.query;
 
-//     if (keyword) {
-//         const searchStoreList = await Store.find({
-//             $or: [
-//                 { name: { $regex: keyword, $options: 'i' } },
-//                 { 'address.city': { $regex: keyword, $options: 'i' } },
-//                 { 'address.street': { $regex: keyword, $options: 'i' } },
-//                 { 'address.state': { $regex: keyword, $options: 'i' } },
-//                 { type: { $regex: keyword, $options: 'i' } },
-//             ],
-//         });
-//         searchStoreList.sort(async (a, b) => {
-//             if (starRating) {
-//                 return b.starRating - a.starRating;
-//             } else if (Review.reviews) {
-//                 return b.Review.reviews.length - a.Review.reviews.length;
-//             } else if (storeLikes) {
-//                 return b.User.storeLikes.length - b.User.storeLikes.length;
-//             }
-//         });
-//         res.json({ searchStoreList });
-//     } else {
-//         res.json({ searchStoreList: [] });
-//     }
-// }
+    await db
+        .collection('Store')
+        .createIndex(
+            { name: 'text', address: 'text', type: 'text', menuItems: 'text' },
+            { weights: { name: 3, address: 1, type: 1, menuItems: 1 } },
+        );
+
+    const searchResult = await db
+        .collection('Store')
+        .aggregate([
+            {
+                $match: { $text: { $search: keyword } },
+            },
+            {
+                $lookup: {
+                    from: 'Address',
+                    localField: 'address',
+                    foreignField: '_id',
+                    as: 'addressInfo',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'MenuItems',
+                    localField: 'menuItems',
+                    foreignField: '_id',
+                    as: 'menuItemsInfo',
+                },
+            },
+            {
+                $project: {
+                    name: 1,
+                    type: 1,
+                    addressInfo: 1,
+                    menuItemsInfo: 1,
+                },
+            },
+            {
+                $sort: { score: { $meta: 'textScore' } },
+            },
+        ])
+        .toArray();
+
+    res.json(searchResult);
+});
 
 // 맛집찾기 필터(업종, 지역)
 // async function filterStores(req, res) {
@@ -175,19 +196,9 @@ const createStore = asyncHandler(async (req, res) => {
 //     //필터 조건에 따른 가게 리스트 가져오기
 //     let filterStoreList = await Store.find(filter);
 
-//     //가게 리스트 기본 정렬: 1. 별점순, 2. 리뷰순, 3. 좋아요순
-//     filterStoreList.sort(async (a, b) => {
-//         if (starRating) {
-//             return b.starRating - a.starRating;
-//         } else if (Review.reviews) {
-//             return b.Review.reviews.length - a.Review.reviews.length;
-//         } else if (storeLikes) {
-//             return b.User.storeLikes.length - b.User.storeLikes.length;
-//         }
-//     });
 //     res.render('storesearch', { filterStoreList: filterStoreList });
 //     res.json({ filterStoreList });
 // }
 
-module.exports = { checkStore, createStore };
+module.exports = { checkStore, createStore, searchStores };
 // searchStores, filterStores

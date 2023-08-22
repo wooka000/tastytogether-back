@@ -3,7 +3,7 @@ const { Schema } = require('mongoose');
 const boardListSchema = new Schema(
     {
         userId: {
-             type: Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: 'User',
             required: true,
         },

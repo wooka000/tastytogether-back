@@ -1,10 +1,13 @@
 require('dotenv').config();
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { Users, RefreshTokens } = require('../data-access');
 
-const { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = process.env;
+const ACCESS_TOKEN_DURATION = '5m';
+const COOKIE_DURATION = 1 * 30 * 60 * 1000; // hour * min * sec * ms
+const { ACCESS_TOKEN_SECRET } = process.env;
 
 // 로그인
 const login = async (req, res) => {
@@ -19,16 +22,17 @@ const login = async (req, res) => {
         throw new Error('가입되지 않은 이메일입니다.');
     }
     const checkPassword = await bcrypt.compare(password, registeredUser.password);
-    console.log('checkPassword', checkPassword);
+
     if (!checkPassword) {
         throw new Error('비밀번호를 잘못 입력했습니다.');
     }
 
     const tokenPayload = { _id: registeredUser._id, email: registeredUser.email };
-    console.log('JWT Payload', tokenPayload);
-    const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, { expiresIn: '1m' });
-    const refreshToken = jwt.sign(tokenPayload, REFRESH_TOKEN_SECRET, { expiresIn: '30m' });
+    const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, {
+        expiresIn: ACCESS_TOKEN_DURATION,
+    });
 
+    const refreshToken = await crypto.randomBytes(8).toString('hex');
     await RefreshTokens.create({
         userId: registeredUser._id,
         email: registeredUser.email,
@@ -40,13 +44,13 @@ const login = async (req, res) => {
         httpOnly: true,
         sameSite: 'None',
         secure: true,
-        maxAge: 1 * 30 * 60 * 1000, // hour * min * sec * ms
+        maxAge: COOKIE_DURATION,
     };
 
     // refresh token cookie에 보내기
     res.cookie('refreshToken', refreshToken, cookieOption);
     // access token body에 보내기
-    res.json({
+    res.status(200).json({
         userId: registeredUser._id,
         nickname: registeredUser.nickname,
         profileImage: registeredUser.profileImage,
@@ -56,11 +60,13 @@ const login = async (req, res) => {
 
 // 회원가입
 const signup = async (req, res) => {
-    const errors = validationResult(req);
-
-    // validationResult 객체 내 validation 오류 확인
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+    // validationResult 객체 내 validator errors 확인
+    const { errors } = validationResult(req);
+    if (errors.length !== 0) {
+        return res.status(400).json({
+            message: '회원가입 양식이 올바르지 않습니다.',
+            errors,
+        });
     }
 
     const { email, password, nickname, name, profileText = null } = req.body;
@@ -71,10 +77,10 @@ const signup = async (req, res) => {
         throw new Error('이메일 또는 닉네임이 중복되었습니다.');
     }
 
-    const hashingSalt = await bcrypt.genSaltSync();
+    const hashingSalt = bcrypt.genSaltSync();
 
-    const hashedPassword = (await bcrypt.hashSync(password, hashingSalt)).toString();
-    console.log(req.file);
+    const hashedPassword = bcrypt.hashSync(password, hashingSalt).toString();
+
     const newUser = {
         nickname,
         email,
@@ -86,7 +92,7 @@ const signup = async (req, res) => {
 
     await Users.create(newUser);
 
-    res.status(200).json({ newUser });
+    res.status(201).json({ message: '회원가입되었습니다.' });
 };
 
 // 이메일 중복검사
@@ -126,24 +132,13 @@ const issueNewAccessTokenByRefreshToken = async (req, res) => {
     if (!foundUser) {
         throw new Error('로그인 정보가 없습니다.');
     }
-    jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, decoded) => {
-        if (err) {
-            throw new Error('인증이 잘 안된다.');
-        }
-        console.log('user in DB', foundUser);
-        console.log('decoded Payload', decoded);
-        if (foundUser.email !== decoded.email) {
-            throw new Error('인증 실패하였습니다');
-        }
 
-        const tokenPayload = { _id: foundUser.userId, email: foundUser.email };
-
-        const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, {
-            expiresIn: '1m',
-        });
-
-        res.json({ accessToken });
+    const tokenPayload = { _id: foundUser.userId, email: foundUser.email };
+    const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, {
+        expiresIn: ACCESS_TOKEN_DURATION,
     });
+
+    res.status(200).json({ ...tokenPayload, accessToken });
 };
 
 // on Client, also delete the accessToken. on Back, delete the refreshToken
@@ -153,8 +148,7 @@ const logout = async (req, res) => {
     if (!req.cookies?.refreshToken) return res.sendStatus(204);
 
     // req.cookies에 refreshToken 있는 경우 - refreshToken delete
-    const deletedUser = await RefreshTokens.findOneAndDelete({ refreshToken });
-    console.log('deleted User', deletedUser);
+    await RefreshTokens.findOneAndDelete({ refreshToken });
     res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'None', secure: true });
     return res.sendStatus(204);
 };

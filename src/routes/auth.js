@@ -18,7 +18,6 @@ const router = Router();
 //     }
 //     res.json(users);
 // };
-
 // router.get('/user', verifyLogin, asyncHandler(getUsers));
 
 router.post('/login', asyncHandler(authController.login));

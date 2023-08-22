@@ -5,9 +5,10 @@ const jwt = require('jsonwebtoken');
 const { ACCESS_TOKEN_SECRET } = process.env;
 
 const verifyLogin = (req, res, next) => {
-    if (req.method === 'OPTIONS') {
-        next();
-    }
+    // preflight 요청에 대해선 verify 하지 않음.
+    // if (req.method === 'OPTIONS') {
+    //     next();
+    // }
 
     const accessToken = req.headers.authorization.split(' ')[1]; // Authorization: 'Bearer TOKEN'
 

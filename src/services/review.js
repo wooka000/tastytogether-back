@@ -1,5 +1,4 @@
 const { Review, Store } = require('../data-access');
-const verifyLogin = require('../middlewares/loginValidator');
 const asyncHandler = require('../utils/async-handler');
 
 async function getReviewById(req, res) {
@@ -73,7 +72,6 @@ async function createReview(req, res) {
     const { reviews } = updateStore;
     const updateReviews = { reviews: [...reviews, storeId] };
     await Store.findOneAndUpdate({ _id: storeId }, updateReviews);
-    console.log(verifyLogin.accessToken);
     res.status(201).json(newReview);
 }
 

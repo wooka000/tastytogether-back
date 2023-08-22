@@ -4,13 +4,19 @@ const { Store } = require('../data-access');
 // const { Store, Review, menuItems } = require('../data-access');
 
 
-const checkStore = async (req, res) => {
-    const { name, address } = req.body;
-    
-    const checkName = await Store.findOne({ name });
-    const checkAddress = await Store.findOne({ address });
-    
-    if (checkName && checkAddress) {
+const checkDuplicate = async ({ name, street }) => {
+    const streetData = await Store.findOne({ name }).populate('address', 'street');
+    if (!streetData) {
+        return false;
+    }
+    return streetData.address.street === street;
+};
+
+// 가게 정보 중복 체크 api
+const checkStore = asyncHandler(async (req, res) => {
+    const { name, street } = req.body;
+
+    if (await checkDuplicate({ name, street })) {
         const error = new Error('이미 같은 가게가 존재합니다.');
         error.statusCode = 409;
         throw error;
@@ -19,7 +25,8 @@ const checkStore = async (req, res) => {
     }
 });
 
-const createStore = async (req, res) => {
+// 가게 등록 api
+const createStore = asyncHandler(async (req, res) => {
     const {
         name,
         street,
@@ -84,9 +91,9 @@ const createStore = async (req, res) => {
         viewCount: 0,
         reviews: [],
         storeLikes: [],
-    }); 
-    return res.status(201).json({ message: '가게 정보가 등록되었습니다.' });
-};
+    });
+    return res.sendStatus(201);
+});
 
 // 가게 검색하는 경우(기본 정렬 적용)
 // async function searchStores(req, res) {

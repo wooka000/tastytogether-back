@@ -1,9 +1,8 @@
+const { Store, MenuItems, Address } = require('../data-access');
+const asyncHandler = require('../utils/async-handler');
+const isValidPhoneNumber = require('../utils/regPhoneNum');
 
-const { Store } = require('../data-access');
-// 허스키 eslint로 인해 잠시 주석 처리
-// const { Store, Review, menuItems } = require('../data-access');
-
-
+// 가게 중복 확인 api
 const checkDuplicate = async ({ name, street }) => {
     const streetData = await Store.findOne({ name }).populate('address', 'street');
     if (!streetData) {
@@ -12,7 +11,7 @@ const checkDuplicate = async ({ name, street }) => {
     return streetData.address.street === street;
 };
 
-// 가게 정보 중복 체크 api
+// 가게 등록 api
 const checkStore = asyncHandler(async (req, res) => {
     const { name, street } = req.body;
 
@@ -25,7 +24,6 @@ const checkStore = asyncHandler(async (req, res) => {
     }
 });
 
-// 가게 등록 api
 const createStore = asyncHandler(async (req, res) => {
     const {
         name,
@@ -44,6 +42,37 @@ const createStore = asyncHandler(async (req, res) => {
         closedDays,
         banners,
     } = req.body;
+
+    if (
+        !name ||
+        !street ||
+        !city ||
+        !state ||
+        !zipCode ||
+        !latitude ||
+        !longitude ||
+        !type ||
+        !phone ||
+        !menuItems ||
+        !priceRange ||
+        !parkingInfo ||
+        !businessHours ||
+        !closedDays ||
+        !banners
+    ) {
+        const error = new Error('입력하지 않은 값이 존재합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
+    if (!isValidPhoneNumber(phone)) {
+        const error = new Error('전화번호 형식에 맞게 작성해주세요.');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const newMenuItems = await MenuItems.insertMany(menuItems);
+    const newMenuItemsIdList = newMenuItems.map((el) => el._id);
+    const newAddress = await Address.create({ street, city, state, zipCode, latitude, longitude });
 
     if (
         !name ||

@@ -35,6 +35,8 @@ const corsOption = { origin: 'http://localhost:3000', credentials: true };
 
 connectToDatabase(url);
 
+const db = mongoose.connection;
+
 const app = express();
 
 app.use(express.json());

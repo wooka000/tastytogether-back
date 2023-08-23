@@ -9,7 +9,7 @@ const { MONGODB_URI } = process.env;
 
 const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
-const mypageRouter = require('./routes/mypage');
+const userRouter = require('./routes/user');
 const storeRoutes = require('./routes/storeRoutes');
 const storeDetailRouter = require('./routes/storeDetail');
 const reviewRouter = require('./routes/review');
@@ -46,7 +46,7 @@ app.use('/public/image', express.static(path.join('public', 'image')));
 
 app.use('/auth', authRouter);
 app.use('/', indexRouter);
-app.use('/mypage', verifyLogin, mypageRouter);
+app.use('/user', userRouter);
 app.use('/stores/detail', storeDetailRouter);
 app.use('/review', reviewRouter);
 app.use('/', boardRouter);

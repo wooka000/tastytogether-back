@@ -10,11 +10,12 @@ const test = {
 };
 
 const editUser = asyncHandler(async (req, res) => {
-    const { userid } = req.params;
+    const { userId } = req.params;
+    console.log(userId);
     // test=>req.body로 변경
     const { name, nickname, profileText, password } = test;
     const updated = await Users.findOneAndUpdate(
-        { _id: userid },
+        { _id: userId },
         {
             name,
             nickname,
@@ -25,10 +26,10 @@ const editUser = asyncHandler(async (req, res) => {
     res.json(updated);
 });
 
-// 회원 탈퇴
+// 회원 탈퇴 O
 const deleteUser = asyncHandler(async (req, res) => {
-    const { userid } = req.params;
-    await Users.deleteOne({ _id: userid });
+    const { userId } = req.params;
+    await Users.deleteOne({ _id: userId });
     // deleteOne 리턴값 : {acknowledged:성공 OR 실패, deletedCount:삭제한 갯수}
     res.sendStatus(200);
 });
@@ -43,8 +44,8 @@ const getBoards = asyncHandler(async (req, res) => {
 
 // 리뷰 목록 나열
 const getReviews = asyncHandler(async (req, res) => {
-    const { userid } = req.params;
-    const userInfo = await Users.findOne({ _id: userid });
+    const { userId } = req.params;
+    const userInfo = await Users.findOne({ _id: userId });
     const reviewList = await Review.find({ userId: userInfo.id });
     res.json(reviewList);
 });
@@ -95,7 +96,6 @@ const deleteStoreLike = asyncHandler(async (req, res) => {
     const filter = { _id: storeid, storeLikes: userid };
     const update = { storeLikes: storeLikes.filter((user) => String(user) !== userid) };
     await Store.findOneAndUpdate(filter, update);
-    // deleteOne 리턴값 : {acknowledged:성공 OR 실패, deletedCount:삭제한 갯수}
     res.sendStatus(200);
 });
 

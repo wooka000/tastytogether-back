@@ -1,80 +1,5 @@
 const { Users, Review, Store } = require('../data-access');
-
-// 임시 데이터 및 데이터 처리 부분 (삭제 예정)
-// let reviews = [
-//     {
-//         id: '1',
-//         grade: '맛있다',
-//         content: '치즈피자가 제일 맛있어요!',
-//         usernickname: 'elice',
-//         username: 'Elice',
-//         createdAt: Date.now().toString(),
-//         storeId: '2',
-//     },
-//     {
-//         id: '2',
-//         grade: '괜찮다',
-//         content: '불고기피자 괜찮아요~',
-//         usernickname: 'bob',
-//         username: 'Bob',
-//         createdAt: Date.now().toString(),
-//         storeId: '3',
-//     },
-//     {
-//         id: '3',
-//         grade: '별로다',
-//         content: '야채피자 별로에요..',
-//         usernickname: 'james',
-//         username: 'James',
-//         createdAt: Date.now().toString(),
-//         storeId: '3',
-//     },
-// ];
-
-// async function getAllRepository() {
-//     return reviews;
-// }
-
-// async function getByUserNicknameRepository(usernickname) {
-//     return reviews.filter((review) => review.usernickname === usernickname);
-// }
-
-// async function getByReviewIdRepository(reviewId) {
-//     return reviews.find((reviewItem) => reviewItem.id === reviewId);
-// }
-
-// async function updateRepository(reviewId, grade, content) {
-//     const review = reviews.find((reviewItem) => reviewItem.id === reviewId);
-//     if (review) {
-//         review.grade = grade;
-//         review.content = content;
-//     }
-//     return review;
-// }
-
-// async function removeRepository(reviewId) {
-//     reviews = reviews.filter((review) => review.id !== reviewId);
-// }
-
-// async function getByStoreIdRepository(storeId) {
-//     return reviews.filter((review) => review.storeId === storeId);
-// }
-
-// async function createRepository(storeId, grade, content, usernickname, username) {
-//     const newReview = {
-//         id: Date.now().toString(),
-//         grade,
-//         content,
-//         usernickname,
-//         username,
-//         createdAt: Date.now().toString(),
-//         storeId,
-//     };
-//     reviews = [newReview, ...reviews];
-//     return newReview;
-// }
-
-// 여기서부터 Controll 부분
+const verifyLogin = require('../middlewares/loginValidator');
 
 async function getUserReviews(req, res) {
     try {
@@ -116,9 +41,6 @@ const test = {
     username: '김토끼',
 };
 
-// 리뷰를 작성할때 body에서 닉네임과 유저이름 가져올 수 없는 것 같다.
-// 닉네임과 유저이름은 로그인 되어있으니까 로그인 정보에서 가져와야 할텐데 어떻게 가져오지?
-// 유저아이디도 로그인 정보에서?
 async function createReview(req, res) {
     // 리뷰 객체 추가
     const { storeId } = req.params;
@@ -131,6 +53,7 @@ async function createReview(req, res) {
     const { reviews } = updateStore;
     const updateReviews = { reviews: [...reviews, storeId] };
     await Store.findOneAndUpdate({ _id: storeId }, updateReviews);
+    console.log(verifyLogin.accessToken);
     res.status(201).json(newReview);
 }
 

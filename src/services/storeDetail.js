@@ -1,4 +1,4 @@
-const { Store, MenuItems } = require('../data-access');
+const { Store } = require('../data-access');
 
 const asyncHandler = require('../utils/async-handler');
 const isValidPhoneNumber = require('../utils/regPhoneNum');
@@ -10,9 +10,7 @@ const getStoreInfo = asyncHandler(async (req, res) => {
         { _id: storeId },
         { $inc: { viewCount: 1 } },
         { new: true },
-    )
-        .populate('reviews')
-        .populate('address');
+    ).populate('reviews');
     const storeReviewCount = storeInfo.reviews.length;
     const userLikeList = storeInfo.storeLikes;
     const storeLikeCount = userLikeList.length;
@@ -23,18 +21,26 @@ const getStoreInfo = asyncHandler(async (req, res) => {
 const updateStoreDetail = asyncHandler(async (req, res) => {
     const { storeId } = req.params;
     const {
-        menuName1,
-        menuName2,
-        menuName3,
-        menuPrice1,
-        menuPrice2,
-        menuPrice3,
         newPhone,
+        newMenuItems,
         newPriceRange,
         newParkingInfo,
         newBusinessHours,
         newClosedDays,
     } = req.body;
+
+    if (
+        !newPhone ||
+        !newMenuItems ||
+        !newPriceRange ||
+        !newParkingInfo ||
+        !newBusinessHours ||
+        !newClosedDays
+    ) {
+        const error = new Error('입력하지 않은 값이 존재합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
 
     if (!isValidPhoneNumber(newPhone)) {
         const error = new Error('전화번호 형식에 맞게 작성해주세요.');
@@ -42,13 +48,11 @@ const updateStoreDetail = asyncHandler(async (req, res) => {
         throw error;
     }
 
-    const menuNames = [menuName1, menuName2, menuName3];
-    const menuPrice = [menuPrice1, menuPrice2, menuPrice3];
-
     const result = await Store.findOneAndUpdate(
         { _id: storeId },
         {
             phone: newPhone,
+            menuItems: newMenuItems,
             priceRange: newPriceRange,
             parkingInfo: newParkingInfo,
             businessHours: newBusinessHours,
@@ -62,23 +66,6 @@ const updateStoreDetail = asyncHandler(async (req, res) => {
         throw error;
     }
 
-    const menuList = result.menuItems;
-    await Promise.all(
-        menuList.map((id, idx) =>
-            MenuItems.findOneAndUpdate(
-                { _id: id },
-                {
-                    name: menuNames[idx],
-                    price: menuPrice[idx],
-                },
-            ),
-        ),
-    ).catch(() => {
-        const error = new Error('서버 오류 발생');
-        error.statusCode = 500;
-        throw error;
-    });
-
     res.sendStatus(200);
 });
 
@@ -88,8 +75,8 @@ const isUserLike = (userLikeList, userId) =>
 // 가게 찜 추가 로직
 const updateStoreLikes = asyncHandler(async (req, res) => {
     const { storeId } = req.params;
-    // const userId = jwtVerify(req);
-    const userId = '64e2245ebef0ef0220e8d707';
+    const { userId } = req.body;
+    // const userId = '64e2245ebef0ef0220e8d707';
     const storeInfo = await Store.findOne({ _id: storeId });
     const userLikeList = [...storeInfo.storeLikes];
     const likeIndex = isUserLike(userLikeList, userId);

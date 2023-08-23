@@ -1,23 +1,105 @@
-const { Board, Comment} = require('../data-access');
+const { Board, Comment } = require('../data-access');
 // 게시글 목록 조회
 // GET /posts
-const getAllBoard = async (req, res) => {
+const getDetailBoard = async (req, res) => {
     try {
-        const boardList = await Board.find({}).populate({
-            path: 'userId', // 참조하는 필드명('userId')
-            select: 'nickname', // 가져올 필드명
-        });
-        res.status(200).send(boardList);
+        const board = await Board.findById(req.params.id).populate('userId', 'nickname');
+        if (!board) {
+            return res.status(404).end();
+        }
+
+        // 게시물 ID를 사용하여 댓글을 조회합니다.
+        const comments = await Comment.find({ boardId: req.params.id }).populate('userId', 'nickname');
+
+        // 게시물과 댓글 정보를 포함하는 응답 객체를 생성합니다.
+        const responseObject = {
+            board: {
+                // eslint-disable-next-line no-underscore-dangle
+                id: board._id,
+                userId: board.userId,
+                storeId: board.storeId,
+                title: board.title,
+                content: board.content,
+                meetDate: board.meetDate,
+                createdAt: board.createdAt,
+            },
+            comments: comments.map((comment) => ({
+                // eslint-disable-next-line no-underscore-dangle
+                id: comment._id,
+                userId: comment.userId,
+                boardId: comment.boardId,
+                content: comment.content,
+                createdAt: comment.createdAt,
+                updatedAt: comment.updatedAt,
+            })),
+        };
+
+        res.status(200).json(responseObject);
     } catch (err) {
         console.error(err.message);
         res.status(500).end();
     }
 };
-// 게시글 작성
-// POST /posts
-// eslint-disable-next-line consistent-return
+
+const getSearchBoard = async (req, res) => {
+    try {
+        const result = await Board.aggregate([
+            {
+                $search: {
+                    index: 'regionSearch',
+                    text: {
+                        query: req.query.value,
+                        path: 'region',
+                    },
+                },
+            },
+            {
+                $sort: { _id: -1 },
+            },
+        ]);
+
+        res.status(200).json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).end();
+    }
+};
+
+
+
+
+
+const getAllBoard = async (req, res, countPerPage, pageNo) => {
+    try {
+        const totalCount = await Board.countDocuments({});
+        const totalPages = Math.ceil(totalCount / countPerPage);
+
+        let startItemNo = (pageNo - 1) * countPerPage;
+        if (startItemNo >= totalCount) {
+            startItemNo = Math.max(0, totalCount - countPerPage);
+        }
+
+        const boardList = await Board.find({}).skip(startItemNo).limit(countPerPage).populate({
+            path: 'userId',
+            select: 'nickname',
+        });
+
+        res.status(200).json({
+            success: true,
+            data: boardList,
+            currentPage: pageNo,
+            totalPages,
+            totalCount,
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).end();
+    }
+};
+
 const postBoard = async (req, res) => {
-    const { userId, region, title, content, meetDate,image } = req.body;
+    const { region, title, content, meetDate, image } = req.body;
+    const { userId } = req.userData;
 
     // 입력값 검증
     if (!userId || !region || !title || !content || !meetDate || !image) {
@@ -92,48 +174,8 @@ const deleteBoard = async (req, res) => {
 };
 // 게시글 상세조회 , 댓글 o
 // eslint-disable-next-line consistent-return
-const getDetailBoard = async (req, res) => {
-    try {
-        const board = await Board.findById(req.params.id).populate('userId', 'nickname');
-        if (!board) {
-            return res.status(404).end();
-        }
 
-        // 게시물 ID를 사용하여 댓글을 조회합니다.
-        const comments = await Comment.find({ boardId: req.params.id }).populate('userId', 'nickname');
-
-        // 게시물과 댓글 정보를 포함하는 응답 객체를 생성합니다.
-        const responseObject = {
-            board: {
-                // eslint-disable-next-line no-underscore-dangle
-                id: board._id,
-                userId: board.userId,
-                storeId: board.storeId,
-                title: board.title,
-                content: board.content,
-                meetDate: board.meetDate,
-                createdAt: board.createdAt,
-            },
-            comments: comments.map((comment) => ({
-                // eslint-disable-next-line no-underscore-dangle
-                id: comment._id,
-                userId: comment.userId,
-                boardId: comment.boardId,
-                content: comment.content,
-                createdAt: comment.createdAt,
-                updatedAt: comment.updatedAt,
-            })),
-        };
-
-        res.status(200).json(responseObject);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).end();
-    }
-};
-
-
-module.exports = {getAllBoard,postBoard,editBoard,deleteBoard,getDetailBoard};
+module.exports = { getAllBoard, postBoard, editBoard, deleteBoard, getDetailBoard, getSearchBoard };
 // 게시글 상세조회 , 댓글 x
 // eslint-disable-next-line consistent-return
 // const getOneBoard = async (req, res) => {

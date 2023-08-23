@@ -1,4 +1,4 @@
-const Comment = require('../data-access/model/Comment');
+const { Comment } = require('../data-access');
 
 // eslint-disable-next-line consistent-return
 const postComments = async (req, res) => {
@@ -35,7 +35,7 @@ const deleteComments = async (req, res) => {
 const getComments = async (req, res) => {
     const commentId = req.params.id;
     try {
-      const comment = await Comment.findOne({ _id: commentId });
+      const comment = await Comment.findOne({ _id: commentId }).populate('userId', 'nickname');
       if (!comment) {
         return res.status(404).end();
       }

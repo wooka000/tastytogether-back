@@ -1,6 +1,7 @@
 const { Store, MenuItems } = require('../data-access');
 
 const asyncHandler = require('../utils/async-handler');
+const isValidPhoneNumber = require('../utils/regPhoneNum');
 
 // 가게 정보 조회 api 서비스 로직
 const getStoreInfo = asyncHandler(async (req, res) => {
@@ -8,17 +9,15 @@ const getStoreInfo = asyncHandler(async (req, res) => {
     const storeInfo = await Store.findOneAndUpdate(
         { _id: storeId },
         { $inc: { viewCount: 1 } },
-    ).populate('reviews');
+        { new: true },
+    )
+        .populate('reviews')
+        .populate('address');
     const storeReviewCount = storeInfo.reviews.length;
     const userLikeList = storeInfo.storeLikes;
     const storeLikeCount = userLikeList.length;
     res.json({ storeInfo, storeReviewCount, storeLikeCount });
 });
-
-const regPhone = /^\d{2,4}-\d{3,4}-\d{4}$/;
-
-// 전화번호 정규식 함수
-const isValidPhoneNumber = (phoneNumber) => regPhone.test(phoneNumber);
 
 // 가게 정보 수정 api 서비스 로직
 const updateStoreDetail = asyncHandler(async (req, res) => {
@@ -37,14 +36,14 @@ const updateStoreDetail = asyncHandler(async (req, res) => {
         newClosedDays,
     } = req.body;
 
-    const menuNames = [menuName1, menuName2, menuName3];
-    const menuPrice = [menuPrice1, menuPrice2, menuPrice3];
-
     if (!isValidPhoneNumber(newPhone)) {
         const error = new Error('전화번호 형식에 맞게 작성해주세요.');
         error.statusCode = 400;
         throw error;
     }
+
+    const menuNames = [menuName1, menuName2, menuName3];
+    const menuPrice = [menuPrice1, menuPrice2, menuPrice3];
 
     const result = await Store.findOneAndUpdate(
         { _id: storeId },
@@ -69,8 +68,8 @@ const updateStoreDetail = asyncHandler(async (req, res) => {
             MenuItems.findOneAndUpdate(
                 { _id: id },
                 {
-                    itemName: menuNames[idx],
-                    itemPrice: menuPrice[idx],
+                    name: menuNames[idx],
+                    price: menuPrice[idx],
                 },
             ),
         ),

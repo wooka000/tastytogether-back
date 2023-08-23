@@ -1,16 +1,6 @@
-const { Users, Review, Store } = require('../data-access');
+const { Review, Store } = require('../data-access');
 const verifyLogin = require('../middlewares/loginValidator');
-
-async function getUserReviews(req, res) {
-    try {
-        const { userId } = req.params;
-        const user = await Users.findOne({ _id: userId });
-        const reviewList = await Review.find({ userId: user.id });
-        res.status(200).json(reviewList);
-    } catch (e) {
-        res.sendStatus(404);
-    }
-}
+const asyncHandler = require('../utils/async-handler');
 
 async function getReviewById(req, res) {
     try {
@@ -22,6 +12,36 @@ async function getReviewById(req, res) {
         res.sendStatus(404);
     }
 }
+
+// 리뷰 수정
+const testReview = {
+    grade: '별로다',
+    content: '직원이 불친절하다',
+};
+
+const editReview = asyncHandler(async (req, res) => {
+    const { reviewid } = req.params;
+    // testReview=>req.body로 변경
+    // {new:true}는 res.json에 값을 넘겨줄때 변경값을 넘겨줄지 말지 정해줌.
+    const { grade, content } = testReview;
+    const updated = await Review.findOneAndUpdate(
+        { _id: reviewid },
+        {
+            grade,
+            content,
+        },
+        { new: true },
+    );
+    // updated 된 review 객체를 넘겨주고 있는데, 이게 필요한지? 성공 실패 상태를 넘겨줘도 되는지
+    res.json(updated);
+});
+
+// 리뷰 삭제
+const deleteReview = asyncHandler(async (req, res) => {
+    const { reviewid } = req.params;
+    await Review.deleteOne({ _id: reviewid });
+    res.sendStatus(200);
+});
 
 async function getByStoreId(req, res) {
     try {
@@ -58,8 +78,9 @@ async function createReview(req, res) {
 }
 
 module.exports = {
-    getUserReviews,
     getReviewById,
     getByStoreId,
     createReview,
+    editReview,
+    deleteReview,
 };

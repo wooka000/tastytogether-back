@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { Store, MenuItems, Address } = require('../data-access');
+const { Store } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
 const isValidPhoneNumber = require('../utils/regPhoneNum');
 
@@ -7,7 +7,7 @@ const db = mongoose.connection;
 
 // 가게 중복 확인 api
 const checkDuplicate = async ({ name, street }) => {
-    const streetData = await Store.findOne({ name }).populate('address', 'street');
+    const streetData = await Store.findOne({ name });
     if (!streetData) {
         return false;
     }
@@ -30,12 +30,7 @@ const checkStore = asyncHandler(async (req, res) => {
 const createStore = asyncHandler(async (req, res) => {
     const {
         name,
-        street,
-        city,
-        state,
-        zipCode,
-        latitude,
-        longitude,
+        address,
         type,
         phone,
         menuItems,
@@ -48,12 +43,7 @@ const createStore = asyncHandler(async (req, res) => {
 
     if (
         !name ||
-        !street ||
-        !city ||
-        !state ||
-        !zipCode ||
-        !latitude ||
-        !longitude ||
+        !address ||
         !type ||
         !phone ||
         !menuItems ||
@@ -72,44 +62,13 @@ const createStore = asyncHandler(async (req, res) => {
         error.statusCode = 400;
         throw error;
     }
-
-    if (
-        !name ||
-        !street ||
-        !city ||
-        !state ||
-        !zipCode ||
-        !latitude ||
-        !longitude ||
-        !type ||
-        !phone ||
-        !menuItems ||
-        !priceRange ||
-        !parkingInfo ||
-        !businessHours ||
-        !closedDays ||
-        !banners
-    ) {
-        const error = new Error('입력하지 않은 값이 존재합니다.');
-        error.statusCode = 400;
-        throw error;
-    }
-    if (!isValidPhoneNumber(phone)) {
-        const error = new Error('전화번호 형식에 맞게 작성해주세요.');
-        error.statusCode = 400;
-        throw error;
-    }
-
-    const newMenuItems = await MenuItems.insertMany(menuItems);
-    const newMenuItemsIdList = newMenuItems.map((el) => el._id);
-    const newAddress = await Address.create({ street, city, state, zipCode, latitude, longitude });
 
     await Store.create({
         name,
-        address: newAddress._id,
+        address,
         type,
         phone,
-        menuItems: newMenuItemsIdList,
+        menuItems,
         priceRange,
         parkingInfo,
         businessHours,
@@ -128,10 +87,7 @@ const searchStores = asyncHandler(async (req, res) => {
     const { keyword } = req.query;
     await db
         .collection('Store')
-        .createIndex(
-            { name: 'text', type: 'text' },
-            { weights: { name: 3, type: 1 } },
-        );
+        .createIndex({ name: 'text', type: 'text' }, { weights: { name: 3, type: 1 } });
 
     const searchResult = await db
         .collection('Store')

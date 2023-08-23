@@ -45,7 +45,7 @@ app.use('/public', express.static('public'));
 
 app.use('/auth', authRouter);
 app.use('/', indexRouter);
-app.use('/user', userRouter);
+app.use('/user', verifyLogin, userRouter);
 app.use('/stores/detail', storeDetailRouter);
 app.use('/review', reviewRouter);
 app.use('/', boardRouter);

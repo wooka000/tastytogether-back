@@ -8,12 +8,13 @@ const { MONGODB_URI } = process.env;
 
 const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
-const mypageRouter = require('./routes/mypage');
+const userRouter = require('./routes/user');
 const storeRoutes = require('./routes/storeRoutes');
 const storeDetailRouter = require('./routes/storeDetail');
 const reviewRouter = require('./routes/review');
 const boardRouter = require('./routes/board');
 const commentRouter = require('./routes/comment');
+const verifyLogin = require('./middlewares/loginValidator');
 
 const connectToDatabase = async (url) => {
     try {
@@ -44,7 +45,7 @@ app.use('/public', express.static('public'));
 
 app.use('/auth', authRouter);
 app.use('/', indexRouter);
-app.use('/mypage', mypageRouter);
+app.use('/user', verifyLogin, userRouter);
 app.use('/stores/detail', storeDetailRouter);
 app.use('/review', reviewRouter);
 app.use('/', boardRouter);
@@ -67,3 +68,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`정상적으로 TastyTogether 서버를 시작하였습니다.  http://localhost:${PORT}`);
 });
+

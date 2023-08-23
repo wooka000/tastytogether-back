@@ -33,5 +33,6 @@ const boardListSchema = new Schema(
         timestamps: true,
     },
 );
+boardListSchema.index({ region:'text' });
 
 module.exports = boardListSchema;

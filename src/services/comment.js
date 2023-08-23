@@ -2,7 +2,8 @@ const { Comment } = require('../data-access');
 
 // eslint-disable-next-line consistent-return
 const postComments = async (req, res) => {
-    const { userId, content } = req.body;
+    const { content } = req.body;
+    const { userId } = req.userData;
     const boardId = req.params.id;
 
     if (!userId || !content || !boardId) {

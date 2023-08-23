@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const AddressSchema = require('./addressSchema');
+const MenuItemsSchema = require('./menuItemsSchema');
 
 const { Schema } = mongoose;
 
@@ -9,11 +11,10 @@ const StoreSchema = new Schema(
             required: true,
         },
         address: {
-            type: mongoose.Types.ObjectId,
+            type: AddressSchema,
             required: true,
-            ref: 'Address',
         },
-        storeType: {
+        type: {
             type: String,
             required: true,
         },
@@ -21,12 +22,10 @@ const StoreSchema = new Schema(
             type: String,
             required: false,
         },
-        menuItems: [
-            {
-                type: mongoose.Types.ObjectId,
-                ref: 'MenuItems',
-            },
-        ],
+        menuItems: {
+            type: [MenuItemsSchema],
+            required: true,
+        },
         priceRange: {
             type: String,
             required: true,
@@ -43,8 +42,8 @@ const StoreSchema = new Schema(
             type: Array,
             required: true,
         },
-        bannerImage: {
-            type: String,
+        banners: {
+            type: Array,
             required: true,
         },
         starRating: {

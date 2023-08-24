@@ -1,6 +1,7 @@
 const { Router } = require('express');
 
 const router = Router();
+
 const boardController = require('../services/board');
 
 // 게시글 목록 조회
@@ -25,8 +26,6 @@ router.patch('/posts/:id', boardController.editBoard);
 
 // 게시글 삭제
 router.delete('/posts/:id', boardController.deleteBoard);
-
-
 
 router.get('/regionSearch', boardController.getSearchBoard);
 

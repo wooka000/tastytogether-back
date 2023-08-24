@@ -152,7 +152,7 @@ const isUserLike = (userLikeList, userId) =>
 // 가게 찜 추가 로직
 const updateStoreLikes = asyncHandler(async (req, res) => {
     const { storeId } = req.params;
-    const { userId } = req.body;
+    const { userId } = req.userData;
     // const userId = '64e2245ebef0ef0220e8d707';
     const storeInfo = await Store.findOne({ _id: storeId });
     const userLikeList = [...storeInfo.storeLikes];

@@ -1,7 +1,7 @@
 const { Users, Review, Store, Board } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
 
-// 회원 정보 수정 -- 이미지 내용 추가 필요. 비밀번호 중복확인은?
+// 회원 정보 수정 -- 이미지 내용 추가 필요. 비밀번호 중복확인 로직 사용.
 const test = {
     name: '짱구',
     nickname: '짱구는못말려',
@@ -65,29 +65,30 @@ const getUserReviews = asyncHandler(async (req, res) => {
     res.status(200).json(reviewList);
 });
 
-// 게시글 목록 나열
+// 게시글 목록 나열 O
 const getBoards = asyncHandler(async (req, res) => {
-    const { userid } = req.params;
-    const userInfo = await Users.findOne({ _id: userid });
+    const { userId } = req.userData;
+    const userInfo = await Users.findOne({ _id: userId });
     const boardList = await Board.find({ userId: userInfo.id });
     res.json(boardList);
 });
 
-// 가게 찜 목록 나열
+// 가게 찜 목록 나열 O
 const getStoreLikes = asyncHandler(async (req, res) => {
-    const { userid } = req.params;
-    const userInfo = await Users.findOne({ _id: userid });
-    const storeLikeList = await Store.find({ storeLikes: userInfo.id });
+    const { userId } = req.userData;
+    const userInfo = await Users.findOne({ _id: userId });
+    const storeLikeList = await Store.find({ storeLikes: { $in: [userInfo.id] } });
     res.json(storeLikeList);
 });
 
-// 가게 찜 삭제
+// 가게 찜 삭제 O
 const deleteStoreLike = asyncHandler(async (req, res) => {
-    const { userid, storeid } = req.params;
-    const finded = await Store.findOne({ _id: storeid });
-    const { storeLikes } = finded;
-    const filter = { _id: storeid, storeLikes: userid };
-    const update = { storeLikes: storeLikes.filter((user) => String(user) !== userid) };
+    const { storeId } = req.params;
+    const { userId } = req.userData;
+    const foundStore = await Store.findOne({ _id: storeId });
+    const { storeLikes } = foundStore;
+    const filter = { _id: storeId };
+    const update = { storeLikes: storeLikes.filter((user) => String(user) !== userId) };
     await Store.findOneAndUpdate(filter, update);
     res.sendStatus(200);
 });

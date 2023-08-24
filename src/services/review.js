@@ -1,11 +1,11 @@
-const { Review, Store } = require('../data-access');
+const { Review, Store, Users } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
 
 // 특정 리뷰 조회
 const getReviewById = asyncHandler(async (req, res) => {
     const { reviewId } = req.params;
     const review = await Review.findOne({ _id: reviewId });
-    res.status(200).json(review);
+    res.json(review);
 });
 
 // 리뷰 생성
@@ -17,11 +17,18 @@ const test = {
 };
 
 const createReview = asyncHandler(async (req, res) => {
-    // 리뷰 객체 추가
+    // 리뷰 객체 추가 => usernickname, username 로직 변경 필요
     const { storeId } = req.params;
     const { userId } = req.userData;
-    const { grade, content, usernickname, username } = test;
+    const userInfo = await Users.findOne({ _id: userId });
+    const { grade, content } = test;
+    const { usernickname, username } = userInfo;
     // const { grade, content, usernickname, username } = req.body;
+    if (!grade || !content) {
+        const error = new Error('입력하지 않은 값이 존재합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
     const newReview = await Review.create({
         grade,
         content,
@@ -51,9 +58,13 @@ const testReview = {
 
 const editReview = asyncHandler(async (req, res) => {
     const { reviewId } = req.params;
-    // testReview=>req.body로 변경
     const { grade, content } = testReview;
-
+    // const { grade, content } = req.body;
+    if (!grade || !content) {
+        const error = new Error('입력하지 않은 값이 존재합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
     const previousReview = await Review.findOne({ _id: reviewId });
     const previousGrade = previousReview.grade;
 
@@ -92,20 +103,8 @@ const deleteReview = asyncHandler(async (req, res) => {
     res.sendStatus(200);
 });
 
-async function getByStoreId(req, res) {
-    try {
-        const { storeId } = req.params;
-        const store = await Store.findOne({ _id: storeId });
-        if (store.reviews.length === 0) throw new Error();
-        res.json(store.reviews);
-    } catch (e) {
-        res.sendStatus(404);
-    }
-}
-
 module.exports = {
     getReviewById,
-    getByStoreId,
     createReview,
     editReview,
     deleteReview,

@@ -18,13 +18,10 @@ router.get('/posts', (req, res) => {
 // 게시글 작성
 router.post('/posts', boardController.postBoard);
 
-// 게시글 상세 정보 조회
 router.get('/posts/:id', boardController.getDetailBoard);
 
-// 게시글 수정
 router.patch('/posts/:id', boardController.editBoard);
 
-// 게시글 삭제
 router.delete('/posts/:id', boardController.deleteBoard);
 
 router.get('/regionSearch', boardController.getSearchBoard);

@@ -4,11 +4,11 @@ const isValidPhoneNumber = require('../utils/regPhoneNum');
 
 // 가게 중복 확인 api
 const checkDuplicate = async ({ name, street }) => {
-    const streetData = await Store.findOne({ name });
-    if (!streetData) {
+    const store = await Store.findOne({ name });
+    if (!store) {
         return false;
     }
-    return streetData.address.street === street;
+    return store.address.street === street;
 };
 
 // 가게 등록 api

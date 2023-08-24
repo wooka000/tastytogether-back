@@ -72,5 +72,4 @@ const StoreSchema = new Schema(
         collection: 'Store',
     },
 );
-
 module.exports = StoreSchema;

@@ -16,7 +16,4 @@ router.patch('/:reviewId', verifyLogin, reviewController.editReview);
 // 리뷰 삭제 api O
 router.delete('/:reviewId', verifyLogin, reviewController.deleteReview);
 
-// 특정 가게 리뷰 조회 X => 안해도 될것같음(다시 확인해보자)
-router.get('/store/:storeId', reviewController.getByStoreId);
-
 module.exports = router;

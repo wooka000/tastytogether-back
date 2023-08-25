@@ -1,10 +1,14 @@
 const { Router } = require('express');
+const { uploadSingleImage } = require('../middlewares/imageUploader');
 const userController = require('../services/user');
 
 const router = Router();
 
+// 배경 이미지 변경
+router.patch('/coverImage', uploadSingleImage('coverImage'), userController.editCoverImage);
+
 // 프로필 수정 api O
-router.patch('/:userId', userController.editUser);
+router.patch('/:userId', uploadSingleImage('profileImage'), userController.editUser);
 
 // 유저 탈퇴 api O
 router.delete('/:userId', userController.deleteUser);

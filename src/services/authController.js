@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { Users, RefreshTokens } = require('../data-access');
 
-const ACCESS_TOKEN_DURATION = '5m';
+const ACCESS_TOKEN_DURATION = '1h';
 const COOKIE_DURATION = 1 * 30 * 60 * 1000; // hour * min * sec * ms
 const { ACCESS_TOKEN_SECRET } = process.env;
 

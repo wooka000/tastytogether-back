@@ -46,8 +46,8 @@ app.use('/auth', authRouter);
 app.use('/', indexRouter);
 app.use('/user', verifyLogin, userRouter);
 app.use('/review', reviewRouter);
-app.use('/', boardRouter);
-app.use('/', commentRouter);
+app.use('/', verifyLogin,boardRouter);
+app.use('/', verifyLogin,commentRouter);
 app.use('/stores', storeRoutes);
 
 app.use((req, res, next) => {

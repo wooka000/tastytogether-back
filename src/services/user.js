@@ -1,32 +1,39 @@
 const { Users, Review, Store, Board } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
 
-// 회원 정보 수정 -- 이미지 내용 추가 필요. 비밀번호 중복확인은?
-const test = {
-    name: '짱구',
-    nickname: '짱구는못말려',
-    profileText: '짱구짱구',
-};
+// 배경 이미지 변경
+const editCoverImage = asyncHandler(async (req, res) => {
+    const { userId } = req.userData;
+    const updatedUser = await Users.findOneAndUpdate(
+        { _id: userId },
+        { coverImage: req.file.location },
+        { new: true },
+    );
+    res.json(updatedUser);
+});
+
+// 회원 정보 수정
 
 const editUser = asyncHandler(async (req, res) => {
     const { userId } = req.params;
-    const tokenId = req.userData.userId;
-    if (userId !== tokenId) {
+    const tokenUserId = req.userData.userId;
+    if (userId !== tokenUserId) {
         const error = new Error('다른 유저 정보 수정은 불가합니다.');
         error.statusCode = 401;
         throw error;
     }
-    // test=>req.body로 변경
-    const { name, nickname, profileText } = test;
-    const updated = await Users.findOneAndUpdate(
+    const { name, nickname, profileText } = req.body;
+    console.log(name, nickname, profileText);
+    const updatedUser = await Users.findOneAndUpdate(
         { _id: userId },
         {
             name,
             nickname,
             profileText,
+            profileImage: req.file.location,
         },
     );
-    res.json(updated);
+    res.json(updatedUser);
 });
 
 // 회원 탈퇴 O
@@ -45,7 +52,6 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 // 리뷰 목록 나열 O
 const getMyReviews = asyncHandler(async (req, res) => {
-    // req.userData로 유저 아이디 접근
     const { userId } = req.userData;
     const userInfo = await Users.findOne({ _id: userId });
     const reviewList = await Review.find({ userId: userInfo.id });
@@ -65,34 +71,36 @@ const getUserReviews = asyncHandler(async (req, res) => {
     res.status(200).json(reviewList);
 });
 
-// 게시글 목록 나열
+// 게시글 목록 나열 O
 const getBoards = asyncHandler(async (req, res) => {
-    const { userid } = req.params;
-    const userInfo = await Users.findOne({ _id: userid });
+    const { userId } = req.userData;
+    const userInfo = await Users.findOne({ _id: userId });
     const boardList = await Board.find({ userId: userInfo.id });
     res.json(boardList);
 });
 
-// 가게 찜 목록 나열
+// 가게 찜 목록 나열 O
 const getStoreLikes = asyncHandler(async (req, res) => {
-    const { userid } = req.params;
-    const userInfo = await Users.findOne({ _id: userid });
-    const storeLikeList = await Store.find({ storeLikes: userInfo.id });
+    const { userId } = req.userData;
+    const userInfo = await Users.findOne({ _id: userId });
+    const storeLikeList = await Store.find({ storeLikes: { $in: [userInfo.id] } });
     res.json(storeLikeList);
 });
 
-// 가게 찜 삭제
+// 가게 찜 삭제 O
 const deleteStoreLike = asyncHandler(async (req, res) => {
-    const { userid, storeid } = req.params;
-    const finded = await Store.findOne({ _id: storeid });
-    const { storeLikes } = finded;
-    const filter = { _id: storeid, storeLikes: userid };
-    const update = { storeLikes: storeLikes.filter((user) => String(user) !== userid) };
+    const { storeId } = req.params;
+    const { userId } = req.userData;
+    const foundStore = await Store.findOne({ _id: storeId });
+    const { storeLikes } = foundStore;
+    const filter = { _id: storeId };
+    const update = { storeLikes: storeLikes.filter((user) => String(user) !== userId) };
     await Store.findOneAndUpdate(filter, update);
     res.sendStatus(200);
 });
 
 module.exports = {
+    editCoverImage,
     editUser,
     deleteUser,
     getBoards,

@@ -3,12 +3,15 @@ const Mongoose = require('mongoose');
 
 const reviewSchema = new Mongoose.Schema(
     {
-        grade: { type: String, require: true },
-        content: { type: String, require: true },
-        usernickname: { type: String, require: true },
-        username: { type: String, require: true },
-        storeId: { type: Schema.Types.ObjectId, ref: 'Store', require: true },
-        userId: { type: Schema.Types.ObjectId, ref: 'Users', require: true },
+        grade: { type: String, required: true },
+        content: { type: String, required: true },
+        usernickname: { type: String, required: true },
+        username: { type: String, required: true },
+        storeId: { type: Schema.Types.ObjectId, ref: 'Store', required: true },
+        userId: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
+        photos: {
+            type: [String],
+        },
     },
     { timestamps: true, collection: 'Review' }, // createdAt
 );

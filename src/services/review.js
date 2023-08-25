@@ -1,36 +1,48 @@
-const { Review, Store } = require('../data-access');
+const { Review, Store, Users } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
+const multiImageAddressHandler = require('../utils/multiImageAddressHandler');
+const photoLimit = require('../utils/photoLimit');
 
 // 특정 리뷰 조회
 const getReviewById = asyncHandler(async (req, res) => {
     const { reviewId } = req.params;
     const review = await Review.findOne({ _id: reviewId });
-    res.status(200).json(review);
+    res.json(review);
 });
 
 // 리뷰 생성
-const test = {
-    grade: 5,
-    content: '맛나요',
-    usernickname: '엘리스',
-    username: '김토끼',
-};
 
 const createReview = asyncHandler(async (req, res) => {
-    // 리뷰 객체 추가
+    // 리뷰 객체 추가 => usernickname, username 로직 변경 필요
     const { storeId } = req.params;
     const { userId } = req.userData;
-    const { grade, content, usernickname, username } = test;
-    // const { grade, content, usernickname, username } = req.body;
-    const newReview = await Review.create({
+    const userInfo = await Users.findOne({ _id: userId });
+    const { grade, content } = req.body;
+    const { nickname, name } = userInfo;
+    const newReview = {
         grade,
         content,
-        usernickname,
-        username,
+        usernickname: nickname,
+        username: name,
         storeId,
         userId,
-    });
+        photos: multiImageAddressHandler(req.files),
+    };
+    console.log(newReview);
 
+    if (!grade || !content) {
+        const error = new Error('입력하지 않은 값이 존재합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (!photoLimit(newReview.photos)) {
+        const error = new Error('사진은 최대 8장 까지만 업로드 가능합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    await Review.create(newReview);
     // store의 review 필드에 리뷰 아이디 추가
     const updatedStore = await Store.findOne({ _id: storeId });
     const { starRating, reviews } = updatedStore;
@@ -44,23 +56,28 @@ const createReview = asyncHandler(async (req, res) => {
 });
 
 // 리뷰 수정
-const testReview = {
-    grade: 3,
-    content: '직원이 불친절하다',
-};
-
 const editReview = asyncHandler(async (req, res) => {
     const { reviewId } = req.params;
-    // testReview=>req.body로 변경
-    const { grade, content } = testReview;
-
+    const { grade, content } = req.body;
+    if (!grade || !content) {
+        const error = new Error('입력하지 않은 값이 존재합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
     const previousReview = await Review.findOne({ _id: reviewId });
     const previousGrade = previousReview.grade;
 
     const updated = {
         grade,
         content,
+        photos: multiImageAddressHandler(req.files),
     };
+
+    if (!photoLimit(updated.photos)) {
+        const error = new Error('사진은 최대 8장 까지만 업로드 가능합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
 
     const updatedReview = await Review.findOneAndUpdate({ _id: reviewId }, updated);
     const updatedStore = await Store.findOne({ _id: updatedReview.storeId });
@@ -92,20 +109,8 @@ const deleteReview = asyncHandler(async (req, res) => {
     res.sendStatus(200);
 });
 
-async function getByStoreId(req, res) {
-    try {
-        const { storeId } = req.params;
-        const store = await Store.findOne({ _id: storeId });
-        if (store.reviews.length === 0) throw new Error();
-        res.json(store.reviews);
-    } catch (e) {
-        res.sendStatus(404);
-    }
-}
-
 module.exports = {
     getReviewById,
-    getByStoreId,
     createReview,
     editReview,
     deleteReview,

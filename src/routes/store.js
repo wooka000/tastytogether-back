@@ -1,11 +1,12 @@
 const { Router } = require('express');
 const storeService = require('../services/store');
 const verifyLogin = require('../middlewares/loginValidator');
+const { uploadMultiImage } = require('../middlewares/imageUploader');
 
 const router = Router();
 
 // 새로운 가게 등록
-router.post('/', verifyLogin, storeService.createStore);
+router.post('/', verifyLogin, uploadMultiImage('banners'), storeService.createStore);
 
 // 가게 중복 확인 api
 router.get('/', storeService.checkStore);

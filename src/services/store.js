@@ -1,6 +1,7 @@
 const { Store } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
 const isValidPhoneNumber = require('../utils/regPhoneNum');
+const multiImageAddress = require('../utils/multiImageAddressHandler');
 
 // 가게 중복 확인 api
 const checkDuplicate = async ({ name, street }) => {
@@ -35,8 +36,9 @@ const createStore = asyncHandler(async (req, res) => {
         parkingInfo,
         businessHours,
         closedDays,
-        banners,
     } = req.body;
+   
+    const newBanners = multiImageAddress(req.files);
 
     if (
         !name ||
@@ -48,7 +50,7 @@ const createStore = asyncHandler(async (req, res) => {
         !parkingInfo ||
         !businessHours ||
         !closedDays ||
-        !banners
+        !newBanners
     ) {
         const error = new Error('입력하지 않은 값이 존재합니다.');
         error.statusCode = 400;
@@ -70,7 +72,7 @@ const createStore = asyncHandler(async (req, res) => {
         parkingInfo,
         businessHours,
         closedDays,
-        banners,
+        banners: newBanners,
         starRating: 0,
         viewCount: 0,
         reviews: [],

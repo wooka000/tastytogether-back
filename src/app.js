@@ -48,8 +48,8 @@ app.use('/', indexRouter);
 app.use('/user', verifyLogin, userRouter);
 app.use('/stores/detail', storeDetailRouter);
 app.use('/review', reviewRouter);
-app.use('/', boardRouter);
-app.use('/', commentRouter);
+app.use('/', verifyLogin,boardRouter);
+app.use('/', verifyLogin,commentRouter);
 app.use('/stores', storeRoutes);
 
 app.use((req, res, next) => {

@@ -98,16 +98,16 @@ const getAllBoard = async (req, res, countPerPage, pageNo) => {
 };
 
 const postBoard = async (req, res) => {
-    const { region, title, content, meetDate, image } = req.body;
+    const { region, title, content, meetDate} = req.body;
     const { userId } = req.userData;
 
     // 입력값 검증
-    if (!userId || !region || !title || !content || !meetDate || !image) {
+    if (!userId || !region || !title || !content || !meetDate || !req.file) {
         return res.status(400).end();
     }
 
     try {
-        const board = new Board({ userId, region, title, content, meetDate, image });
+        const board = new Board({ userId, region, title, content, meetDate, image: req.file.location });
         const savedBoard = await board.save();
         res.status(201).json(savedBoard);
     } catch (err) {

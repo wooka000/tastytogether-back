@@ -120,7 +120,7 @@ const postBoard = async (req, res) => {
 
 // eslint-disable-next-line consistent-return
 const editBoard = async (req, res) => {
-    const { title, content, meetDate, region, image } = req.body;
+    const { title, content, meetDate, region } = req.body;
 
     const updatedFields = {};
     if (title) {
@@ -134,9 +134,6 @@ const editBoard = async (req, res) => {
     }
     if (region) {
         updatedFields.region = region;
-    }
-    if (image) {
-        updatedFields.image = image;
     }
 
     try {

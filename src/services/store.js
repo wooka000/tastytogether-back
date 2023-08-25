@@ -2,6 +2,7 @@ const { Store } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
 const isValidPhoneNumber = require('../utils/regPhoneNum');
 const multiImageAddress = require('../utils/multiImageAddressHandler');
+const photoLimit = require('../utils/photoLimit');
 
 // 가게 중복 확인 api
 const checkDuplicate = async ({ name, street }) => {
@@ -37,7 +38,7 @@ const createStore = asyncHandler(async (req, res) => {
         businessHours,
         closedDays,
     } = req.body;
-   
+
     const newBanners = multiImageAddress(req.files);
 
     if (
@@ -61,7 +62,11 @@ const createStore = asyncHandler(async (req, res) => {
         error.statusCode = 400;
         throw error;
     }
-
+    if (!photoLimit(newBanners)) {
+        const error = new Error('사진은 최대 8장 까지만 업로드 가능합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
     await Store.create({
         name,
         address,

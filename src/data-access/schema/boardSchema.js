@@ -23,10 +23,10 @@ const boardListSchema = new Schema(
             type: String,
             required: true,
         },
-        image: {
+        image: [{
             type: String,
             required: true,
-        },
+        }],
     },
     {
         collection: 'Board',

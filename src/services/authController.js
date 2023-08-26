@@ -5,9 +5,11 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { Users, RefreshTokens } = require('../data-access');
 
-const ACCESS_TOKEN_DURATION = '1h';
+const ACCESS_TOKEN_DURATION = '10m';
 const COOKIE_DURATION = 1 * 30 * 60 * 1000; // hour * min * sec * ms
 const { ACCESS_TOKEN_SECRET } = process.env;
+const DEFAULT_PROFILE_IMAGE =
+    'https://tasty-together.s3.ap-northeast-2.amazonaws.com/image/default-profile-image.png';
 
 // 로그인
 const login = async (req, res) => {
@@ -69,7 +71,7 @@ const signup = async (req, res) => {
         });
     }
 
-    const { email, password, nickname, name, profileText = null } = req.body;
+    const { email, password, nickname, name } = req.body;
 
     // 이메일, 닉네임 중복여부
     const checkEmail = await Users.findOne({ $or: [{ email }, { nickname }] });
@@ -86,8 +88,8 @@ const signup = async (req, res) => {
         email,
         password: hashedPassword,
         name,
-        profileImage: req.file.location,
-        profileText,
+        profileImage: DEFAULT_PROFILE_IMAGE,
+        profileText: null,
     };
 
     await Users.create(newUser);

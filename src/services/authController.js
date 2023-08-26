@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { Users, RefreshTokens } = require('../data-access');
 
-const ACCESS_TOKEN_DURATION = '10m';
+const ACCESS_TOKEN_DURATION = '1m';
 const COOKIE_DURATION = 1 * 30 * 60 * 1000; // hour * min * sec * ms
 const { ACCESS_TOKEN_SECRET } = process.env;
 const DEFAULT_PROFILE_IMAGE =
@@ -16,17 +16,17 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        throw new Error('이메일과 비밀번호를 입력하세요.');
+        res.status(400).json({ message: '이메일과 비밀번호를 입력하세요.' }).end();
     }
 
     const registeredUser = await Users.findOne({ email });
     if (!registeredUser) {
-        throw new Error('가입되지 않은 이메일입니다.');
+        res.status(400).json({ message: '가입되지 않은 이메일입니다.' }).end();
     }
     const checkPassword = await bcrypt.compare(password, registeredUser.password);
 
     if (!checkPassword) {
-        throw new Error('비밀번호를 잘못 입력했습니다.');
+        res.status(400).json({ message: '비밀번호를 잘못 입력했습니다.' }).end();
     }
 
     const tokenPayload = { _id: registeredUser._id, email: registeredUser.email };
@@ -65,10 +65,13 @@ const signup = async (req, res) => {
     // validationResult 객체 내 validator errors 확인
     const { errors } = validationResult(req);
     if (errors.length !== 0) {
-        return res.status(400).json({
-            message: '회원가입 양식이 올바르지 않습니다.',
-            errors,
-        });
+        return res
+            .status(400)
+            .json({
+                message: '회원가입 양식이 올바르지 않습니다.',
+                errors,
+            })
+            .end();
     }
 
     const { email, password, nickname, name } = req.body;
@@ -76,7 +79,7 @@ const signup = async (req, res) => {
     // 이메일, 닉네임 중복여부
     const checkEmail = await Users.findOne({ $or: [{ email }, { nickname }] });
     if (checkEmail) {
-        throw new Error('이메일 또는 닉네임이 중복되었습니다.');
+        res.status(400).json({ message: '이메일 또는 닉네임이 중복되었습니다.' }).end();
     }
 
     const hashingSalt = bcrypt.genSaltSync();
@@ -103,12 +106,10 @@ const checkEmail = async (req, res) => {
     const checkResult = await Users.findOne({ email });
 
     if (checkResult) {
-        throw new Error('이미 사용 중인 이메일입니다.');
+        res.status(400).json({ message: '이미 사용 중인 이메일입니다.' }).end();
     }
 
-    res.status(200).json({
-        message: '사용 가능한 이메일입니다.',
-    });
+    res.status(200).json({ message: '사용 가능한 이메일입니다.' });
 };
 
 // 닉네임 중복검사
@@ -117,22 +118,21 @@ const checkNickname = async (req, res) => {
     const checkResult = await Users.findOne({ nickname });
 
     if (checkResult) {
-        throw new Error('이미 사용 중인 닉네임입니다.');
+        res.status(400).json({ message: '이미 사용 중인 닉네임입니다.' }).end();
     }
 
-    res.status(200).json({
-        message: '사용 가능한 닉네임입니다.',
-    });
+    res.status(200).json({ message: '사용 가능한 닉네임입니다.' });
 };
 
 // refreshToken 확인 후 accessToken 재발행
 const issueNewAccessTokenByRefreshToken = async (req, res) => {
     const { refreshToken } = req.cookies;
 
-    if (!req.cookies?.refreshToken) return res.sendStatus(401);
+    if (!req.cookies?.refreshToken)
+        return res.status(401).json({ message: '로그인 정보가 없습니다.' }).end();
     const foundUser = await RefreshTokens.findOne({ refreshToken });
     if (!foundUser) {
-        throw new Error('로그인 정보가 없습니다.');
+        res.status(401).json({ message: '로그인 정보가 없습니다.' }).end();
     }
 
     const tokenPayload = { _id: foundUser.userId, email: foundUser.email };

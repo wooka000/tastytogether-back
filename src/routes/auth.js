@@ -14,9 +14,9 @@ const { Users } = require('../data-access');
 const getUsers = async (req, res) => {
     const users = await Users.find();
     if (!users) {
-        throw new Error('가입된 이용자가 없습니다.');
+        res.status(400).json({ message: '가입된 이용자가 없습니다.' }).end();
     }
-    res.json(users);
+    res.status(200).json(users);
 };
 router.get('/user', verifyLogin, asyncHandler(getUsers));
 

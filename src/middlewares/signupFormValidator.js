@@ -4,18 +4,17 @@ const ERROR_MESSAGE = {
     invalidEmail: '유효한 이메일을 입력해주세요',
     name: {
         required: '이름을 입력해주세요',
-        lengthLimit: '이름은 최대 5글자 이하이어야 합니다',
+        typeAndLengthLimit: '이름은 한글로만 구성되고 최대 5글자여야 합니다',
     },
     nickname: {
         required: '닉네임을 입력해주세요',
-        lengthLimit: '닉네임은 최대 5글자 이하이어야 합니다',
+        lengthLimit: '닉네임은 최대 8글자 이하이어야 합니다',
     },
     password: {
         lengthLimit: '비밀번호는 최소 8글자 이상이어야 합니다',
         includeAlphabet: '비밀번호는 영문 대소문자를 포함해야 합니다',
         includeNumber: '비밀번호는 숫자를 포함해야 합니다',
     },
-    profileTextLengthLimit: '프로필 소개는 최대 30글자까지 가능합니다',
 };
 
 const verifySignUpForm = [
@@ -24,13 +23,13 @@ const verifySignUpForm = [
     body('name')
         .notEmpty()
         .withMessage(ERROR_MESSAGE.name.required)
-        .isLength({ max: 5 })
-        .withMessage(ERROR_MESSAGE.name.lengthLimit),
+        .matches(/^[가-힣]{1,5}$/)
+        .withMessage(ERROR_MESSAGE.name.typeAndLengthLimit),
 
     body('nickname')
         .notEmpty()
         .withMessage(ERROR_MESSAGE.nickname.required)
-        .isLength({ max: 5 })
+        .isLength({ max: 8 })
         .withMessage(ERROR_MESSAGE.nickname.lengthLimit),
 
     body('password')
@@ -40,8 +39,6 @@ const verifySignUpForm = [
         .withMessage(ERROR_MESSAGE.password.includeAlphabet)
         .matches(/[0-9]/)
         .withMessage(ERROR_MESSAGE.password.includeNumber),
-
-    body('profileText').isLength({ max: 30 }).withMessage(ERROR_MESSAGE.profileTextLengthLimit),
 ];
 
 module.exports = verifySignUpForm;

@@ -16,17 +16,17 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        res.status(400).json({ message: '이메일과 비밀번호를 입력하세요.' }).end();
+        return res.status(400).json({ message: '이메일과 비밀번호를 입력하세요.' }).end();
     }
 
     const registeredUser = await Users.findOne({ email });
     if (!registeredUser) {
-        res.status(400).json({ message: '가입되지 않은 이메일입니다.' }).end();
+        return res.status(400).json({ message: '가입되지 않은 이메일입니다.' }).end();
     }
     const checkPassword = await bcrypt.compare(password, registeredUser.password);
 
     if (!checkPassword) {
-        res.status(400).json({ message: '비밀번호를 잘못 입력했습니다.' }).end();
+        return res.status(400).json({ message: '비밀번호를 잘못 입력했습니다.' }).end();
     }
 
     const tokenPayload = { _id: registeredUser._id, email: registeredUser.email };
@@ -79,7 +79,7 @@ const signup = async (req, res) => {
     // 이메일, 닉네임 중복여부
     const checkEmail = await Users.findOne({ $or: [{ email }, { nickname }] });
     if (checkEmail) {
-        res.status(400).json({ message: '이메일 또는 닉네임이 중복되었습니다.' }).end();
+        return res.status(400).json({ message: '이메일 또는 닉네임이 중복되었습니다.' }).end();
     }
 
     const hashingSalt = bcrypt.genSaltSync();
@@ -106,7 +106,7 @@ const checkEmail = async (req, res) => {
     const checkResult = await Users.findOne({ email });
 
     if (checkResult) {
-        res.status(400).json({ message: '이미 사용 중인 이메일입니다.' }).end();
+        return res.status(400).json({ message: '이미 사용 중인 이메일입니다.' }).end();
     }
 
     res.status(200).json({ message: '사용 가능한 이메일입니다.' });
@@ -118,7 +118,7 @@ const checkNickname = async (req, res) => {
     const checkResult = await Users.findOne({ nickname });
 
     if (checkResult) {
-        res.status(400).json({ message: '이미 사용 중인 닉네임입니다.' }).end();
+        return res.status(400).json({ message: '이미 사용 중인 닉네임입니다.' }).end();
     }
 
     res.status(200).json({ message: '사용 가능한 닉네임입니다.' });
@@ -132,7 +132,7 @@ const issueNewAccessTokenByRefreshToken = async (req, res) => {
         return res.status(401).json({ message: '로그인 정보가 없습니다.' }).end();
     const foundUser = await RefreshTokens.findOne({ refreshToken });
     if (!foundUser) {
-        res.status(401).json({ message: '로그인 정보가 없습니다.' }).end();
+        return res.status(401).json({ message: '로그인 정보가 없습니다.' }).end();
     }
 
     const tokenPayload = { _id: foundUser.userId, email: foundUser.email };

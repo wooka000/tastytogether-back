@@ -21,13 +21,7 @@ const getUsers = async (req, res) => {
 router.get('/user', verifyLogin, asyncHandler(getUsers));
 
 router.post('/login', asyncHandler(authController.login));
-router.post(
-    '/signup',
-
-    verifySignUpForm,
-
-    asyncHandler(authController.signup),
-);
+router.post('/signup', verifySignUpForm, asyncHandler(authController.signup));
 router.post('/email', asyncHandler(authController.checkEmail));
 router.post('/nickname', asyncHandler(authController.checkNickname));
 router.post('/refreshtoken', asyncHandler(authController.issueNewAccessTokenByRefreshToken));

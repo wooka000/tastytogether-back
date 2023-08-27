@@ -43,12 +43,11 @@ app.use(cookieParser());
 app.use('/public', express.static('public'));
 
 app.use('/auth', authRouter);
-app.use('/', indexRouter);
-app.use('/user', verifyLogin, userRouter);
-app.use('/review', reviewRouter);
-app.use('/', verifyLogin,boardRouter);
-app.use('/', verifyLogin,commentRouter);
 app.use('/stores', storeRoutes);
+app.use('/review', reviewRouter);
+app.use('/', verifyLogin, boardRouter);
+app.use('/', verifyLogin, commentRouter);
+app.use('/user', verifyLogin, userRouter);
 
 app.use((req, res, next) => {
     const error = new Error('Resource Not Found');

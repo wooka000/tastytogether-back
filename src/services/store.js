@@ -1,6 +1,6 @@
 const { Store } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
-const isValidPhoneNumber = require('../utils/regPhoneNum');
+const { isValidPhoneNumber, isValidHour, isvalidMinute } = require('../utils/regList');
 const multiImageAddress = require('../utils/multiImageAddressHandler');
 const photoLimit = require('../utils/photoLimit');
 
@@ -62,11 +62,24 @@ const createStore = asyncHandler(async (req, res) => {
         error.statusCode = 400;
         throw error;
     }
+
     if (!photoLimit(newBanners)) {
         const error = new Error('사진은 최대 8장 까지만 업로드 가능합니다.');
         error.statusCode = 400;
         throw error;
     }
+
+    if (!isValidHour(businessHours[0], businessHours[2])) {
+        const error = new Error('시간 형식에 맞게 작성해주세요.');
+        error.statusCode = 400;
+        throw error;
+    }
+    if (!isvalidMinute(businessHours[1], businessHours[3])) {
+        const error = new Error('분 형식에 맞게 작성해주세요.');
+        error.statusCode = 400;
+        throw error;
+    }
+
     await Store.create({
         name,
         address,
@@ -127,6 +140,16 @@ const updateStoreDetail = asyncHandler(async (req, res) => {
 
     if (!isValidPhoneNumber(newPhone)) {
         const error = new Error('전화번호 형식에 맞게 작성해주세요.');
+        error.statusCode = 400;
+        throw error;
+    }
+    if (!isValidHour(newBusinessHours[0], newBusinessHours[2])) {
+        const error = new Error('시간 형식에 맞게 작성해주세요.');
+        error.statusCode = 400;
+        throw error;
+    }
+    if (!isvalidMinute(newBusinessHours[1], newBusinessHours[3])) {
+        const error = new Error('분 형식에 맞게 작성해주세요.');
         error.statusCode = 400;
         throw error;
     }

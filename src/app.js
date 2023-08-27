@@ -6,7 +6,6 @@ const cookieParser = require('cookie-parser');
 
 const { MONGODB_URI } = process.env;
 
-const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
 const userRouter = require('./routes/user');
 const storeRoutes = require('./routes/store');

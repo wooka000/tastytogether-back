@@ -1,6 +1,8 @@
 const { Store } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
-const isValidPhoneNumber = require('../utils/regPhoneNum');
+const { isValidPhoneNumber, isValidHour, isvalidMinute } = require('../utils/regList');
+const multiImageAddress = require('../utils/multiImageAddressHandler');
+const photoLimit = require('../utils/photoLimit');
 
 // 가게 중복 확인 api
 const checkDuplicate = async ({ name, street }) => {
@@ -11,19 +13,17 @@ const checkDuplicate = async ({ name, street }) => {
     return store.address.street === street;
 };
 
-// 가게 등록 api
 const checkStore = asyncHandler(async (req, res) => {
     const { name, street } = req.body;
 
     if (await checkDuplicate({ name, street })) {
-        const error = new Error('이미 같은 가게가 존재합니다.');
-        error.statusCode = 409;
-        throw error;
+        res.status(200).json('중복된 가게가 존재합니다.');
     } else {
-        res.status(200).send('가게 확인 완료');
+        res.status(200).json('가게 확인 완료');
     }
 });
 
+// 가게 등록 api
 const createStore = asyncHandler(async (req, res) => {
     const {
         name,
@@ -35,8 +35,9 @@ const createStore = asyncHandler(async (req, res) => {
         parkingInfo,
         businessHours,
         closedDays,
-        banners,
     } = req.body;
+
+    const newBanners = multiImageAddress(req.files);
 
     if (
         !name ||
@@ -48,7 +49,7 @@ const createStore = asyncHandler(async (req, res) => {
         !parkingInfo ||
         !businessHours ||
         !closedDays ||
-        !banners
+        !newBanners
     ) {
         const error = new Error('입력하지 않은 값이 존재합니다.');
         error.statusCode = 400;
@@ -56,6 +57,23 @@ const createStore = asyncHandler(async (req, res) => {
     }
     if (!isValidPhoneNumber(phone)) {
         const error = new Error('전화번호 형식에 맞게 작성해주세요.');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (!photoLimit(newBanners)) {
+        const error = new Error('사진은 최대 8장 까지만 업로드 가능합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (!isValidHour(businessHours[0], businessHours[2])) {
+        const error = new Error('시간 형식에 맞게 작성해주세요.');
+        error.statusCode = 400;
+        throw error;
+    }
+    if (!isvalidMinute(businessHours[1], businessHours[3])) {
+        const error = new Error('분 형식에 맞게 작성해주세요.');
         error.statusCode = 400;
         throw error;
     }
@@ -70,7 +88,7 @@ const createStore = asyncHandler(async (req, res) => {
         parkingInfo,
         businessHours,
         closedDays,
-        banners,
+        banners: newBanners,
         starRating: 0,
         viewCount: 0,
         reviews: [],
@@ -123,6 +141,16 @@ const updateStoreDetail = asyncHandler(async (req, res) => {
         error.statusCode = 400;
         throw error;
     }
+    if (!isValidHour(newBusinessHours[0], newBusinessHours[2])) {
+        const error = new Error('시간 형식에 맞게 작성해주세요.');
+        error.statusCode = 400;
+        throw error;
+    }
+    if (!isvalidMinute(newBusinessHours[1], newBusinessHours[3])) {
+        const error = new Error('분 형식에 맞게 작성해주세요.');
+        error.statusCode = 400;
+        throw error;
+    }
 
     const result = await Store.findOneAndUpdate(
         { _id: storeId },
@@ -153,7 +181,6 @@ const isUserLike = (userLikeList, userId) =>
 const updateStoreLikes = asyncHandler(async (req, res) => {
     const { storeId } = req.params;
     const { userId } = req.userData;
-    // const userId = '64e2245ebef0ef0220e8d707';
     const storeInfo = await Store.findOne({ _id: storeId });
     const userLikeList = [...storeInfo.storeLikes];
     const likeIndex = isUserLike(userLikeList, userId);

@@ -23,15 +23,18 @@ const boardListSchema = new Schema(
             type: String,
             required: true,
         },
-        image: {
-            type: String,
-            required: true,
-        },
+        image: [
+            {
+                type: String,
+                required: true,
+            },
+        ],
     },
     {
         collection: 'Board',
         timestamps: true,
     },
 );
+boardListSchema.index({ region: 'text' });
 
 module.exports = boardListSchema;

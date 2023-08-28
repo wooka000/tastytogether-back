@@ -8,17 +8,17 @@ const authController = require('../services/authController');
 const router = Router();
 
 // verifyLogin 테스트용 코드
-// const verifyLogin = require('../middlewares/loginValidator');
-// const { Users } = require('../data-access');
+const verifyLogin = require('../middlewares/loginValidator');
+const { Users } = require('../data-access');
 
-// const getUsers = async (req, res) => {
-//     const users = await Users.find();
-//     if (!users) {
-//         throw new Error('가입된 이용자가 없습니다.');
-//     }
-//     res.json(users);
-// };
-// router.get('/user', verifyLogin, asyncHandler(getUsers));
+const getUsers = async (req, res) => {
+    const users = await Users.find();
+    if (!users) {
+        res.status(400).json({ message: '가입된 이용자가 없습니다.' }).end();
+    }
+    res.status(200).json(users);
+};
+router.get('/user', verifyLogin, asyncHandler(getUsers));
 
 router.post('/login', asyncHandler(authController.login));
 router.post(

@@ -6,7 +6,6 @@ const cookieParser = require('cookie-parser');
 
 const { MONGODB_URI } = process.env;
 
-const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
 const userRouter = require('./routes/user');
 const storeRoutes = require('./routes/store');
@@ -43,12 +42,11 @@ app.use(cookieParser());
 app.use('/public', express.static('public'));
 
 app.use('/auth', authRouter);
-app.use('/', indexRouter);
-app.use('/user', verifyLogin, userRouter);
-app.use('/review', reviewRouter);
-app.use('/', boardRouter);
-app.use('/', commentRouter);
 app.use('/stores', storeRoutes);
+app.use('/review', reviewRouter);
+app.use('/', verifyLogin, boardRouter);
+app.use('/', verifyLogin, commentRouter);
+app.use('/user', verifyLogin, userRouter);
 
 app.use((req, res, next) => {
     const error = new Error('Resource Not Found');

@@ -9,7 +9,10 @@ const getDetailBoard = async (req, res) => {
         }
 
         // 게시물 ID를 사용하여 댓글을 조회합니다.
-        const comments = await Comment.find({ boardId: req.params.id }).populate('userId', 'nickname');
+        const comments = await Comment.find({ boardId: req.params.id }).populate(
+            'userId',
+            'nickname',
+        );
 
         // 게시물과 댓글 정보를 포함하는 응답 객체를 생성합니다.
         const responseObject = {
@@ -65,10 +68,6 @@ const getSearchBoard = async (req, res) => {
     }
 };
 
-
-
-
-
 const getAllBoard = async (req, res, countPerPage, pageNo) => {
     try {
         const totalCount = await Board.countDocuments({});
@@ -98,7 +97,7 @@ const getAllBoard = async (req, res, countPerPage, pageNo) => {
 };
 
 const postBoard = async (req, res) => {
-    const { region, title, content, meetDate} = req.body;
+    const { region, title, content, meetDate } = req.body;
     const { userId } = req.userData;
 
     // 입력값 검증
@@ -107,7 +106,14 @@ const postBoard = async (req, res) => {
     }
 
     try {
-        const board = new Board({ userId, region, title, content, meetDate, image: req.file.location });
+        const board = new Board({
+            userId,
+            region,
+            title,
+            content,
+            meetDate,
+            image: req.file.location,
+        });
         const savedBoard = await board.save();
         res.status(201).json(savedBoard);
     } catch (err) {

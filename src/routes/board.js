@@ -20,7 +20,6 @@ router.get('/posts', (req, res) => {
 
 // 게시글 작성
 
-
 router.get('/posts/:id', boardController.getDetailBoard);
 
 router.patch('/posts/:id', boardController.editBoard);

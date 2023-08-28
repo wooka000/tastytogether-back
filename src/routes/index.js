@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const asyncHandler = require('../utils/async-handler');
+const mainController = require('../services/main');
 
 const router = Router();
 
@@ -9,5 +10,7 @@ router.get(
         res.send('홈페이지');
     }),
 );
+
+router.get('/banner', mainController.getBannerImage);
 
 module.exports = router;

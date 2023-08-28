@@ -13,19 +13,17 @@ const checkDuplicate = async ({ name, street }) => {
     return store.address.street === street;
 };
 
-// 가게 등록 api
 const checkStore = asyncHandler(async (req, res) => {
     const { name, street } = req.body;
 
     if (await checkDuplicate({ name, street })) {
-        const error = new Error('이미 같은 가게가 존재합니다.');
-        error.statusCode = 409;
-        throw error;
+        res.status(200).json('중복된 가게가 존재합니다.');
     } else {
-        res.status(200).send('가게 확인 완료');
+        res.status(200).json('가게 확인 완료');
     }
 });
 
+// 가게 등록 api
 const createStore = asyncHandler(async (req, res) => {
     const {
         name,

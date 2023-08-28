@@ -1,6 +1,6 @@
+const bcrypt = require('bcryptjs');
 const { Users, Review, Store, Board } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
-const bcrypt = require('bcryptjs');
 
 // 배경 이미지 변경
 const editCoverImage = asyncHandler(async (req, res) => {

@@ -18,6 +18,7 @@ const createReview = asyncHandler(async (req, res) => {
     const userInfo = await Users.findOne({ _id: userId });
     const { grade, content } = req.body;
     const { nickname, name } = userInfo;
+
     const newReview = {
         grade,
         content,
@@ -35,6 +36,7 @@ const createReview = asyncHandler(async (req, res) => {
     }
 
     if (!photoLimit(newReview.photos)) {
+        await Review.deleteOne({ newReview });
         const error = new Error('사진은 최대 8장 까지만 업로드 가능합니다.');
         error.statusCode = 400;
         throw error;
@@ -46,8 +48,8 @@ const createReview = asyncHandler(async (req, res) => {
     const { starRating, reviews } = updatedStore;
 
     // store의 별점 평균 추가 로직
-    const updatedRating = (starRating * reviews.length + grade) / (reviews.length + 1);
-
+    const updatedRating = (starRating * reviews.length + Number(grade)) / (reviews.length + 1);
+    console.log(starRating, reviews.length, grade, updatedRating);
     const updated = { reviews: [...reviews, newReview._id], starRating: updatedRating };
     await Store.findOneAndUpdate({ _id: storeId }, updated);
     res.status(201).json(newReview);
@@ -81,7 +83,8 @@ const editReview = asyncHandler(async (req, res) => {
     const updatedStore = await Store.findOne({ _id: updatedReview.storeId });
     // 평균별점 업데이트 로직
     const { reviews, starRating } = updatedStore;
-    const newRating = (starRating * reviews.length - previousGrade + grade) / reviews.length;
+    const newRating =
+        (starRating * reviews.length - previousGrade + Number(grade)) / reviews.length;
     const updatedRating = { starRating: newRating };
 
     await Store.findOneAndUpdate({ _id: updatedReview.storeId }, updatedRating);
@@ -98,7 +101,7 @@ const deleteReview = asyncHandler(async (req, res) => {
     const { starRating, reviews } = store;
 
     // 평균별점 업데이트 로직
-    const newRating = (starRating * reviews.length - grade) / (reviews.length - 1);
+    const newRating = (starRating * reviews.length - Number(grade)) / (reviews.length - 1);
     const newReview = reviews.filter((review) => String(review) !== reviewId);
     const updated = { starRating: newRating, reviews: newReview };
     await Store.findOneAndUpdate({ _id: storeId }, updated);

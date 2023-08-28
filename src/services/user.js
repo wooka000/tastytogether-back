@@ -1,5 +1,6 @@
 const { Users, Review, Store, Board } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
+const bcrypt = require('bcryptjs');
 
 // 배경 이미지 변경
 const editCoverImage = asyncHandler(async (req, res) => {
@@ -38,13 +39,7 @@ const editUser = asyncHandler(async (req, res) => {
 
 // 회원 탈퇴 O
 const deleteUser = asyncHandler(async (req, res) => {
-    const { userId } = req.params;
-    const tokenId = req.userData.userId;
-    if (userId !== tokenId) {
-        const error = new Error('다른 유저의 탈퇴 요청은 불가합니다.');
-        error.statusCode = 401;
-        throw error;
-    }
+    const { userId } = req.userData;
     await Users.deleteOne({ _id: userId });
     // deleteOne 리턴값 : {acknowledged:성공 OR 실패, deletedCount:삭제한 갯수}
     res.sendStatus(200);
@@ -55,7 +50,7 @@ const getMyReviews = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
     const userInfo = await Users.findOne({ _id: userId });
     const reviewList = await Review.find({ userId: userInfo.id });
-    res.status(200).json(reviewList);
+    res.status(200).json({ reviewList });
 });
 
 // 특정 사용자 리뷰 조회 O
@@ -76,7 +71,7 @@ const getBoards = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
     const userInfo = await Users.findOne({ _id: userId });
     const boardList = await Board.find({ userId: userInfo.id });
-    res.json(boardList);
+    res.json({ boardList });
 });
 
 // 가게 찜 목록 나열 O
@@ -84,7 +79,7 @@ const getStoreLikes = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
     const userInfo = await Users.findOne({ _id: userId });
     const storeLikeList = await Store.find({ storeLikes: { $in: [userInfo.id] } });
-    res.json(storeLikeList);
+    res.json({ storeLikeList });
 });
 
 // 가게 찜 삭제 O
@@ -99,6 +94,27 @@ const deleteStoreLike = asyncHandler(async (req, res) => {
     res.sendStatus(200);
 });
 
+// 비밀번호 변경
+const changePassword = asyncHandler(async (req, res) => {
+    const { currentPassword, newPassword, checkPassword } = req.body;
+    const { userId } = req.userData;
+    const user = await Users.findOne({ _id: userId });
+    const filter = {
+        password: newPassword,
+    };
+    const checkCurrentPassword = await bcrypt.compare(currentPassword, user.password);
+    if (!checkCurrentPassword) {
+        throw new Error('비밀번호를 잘못 입력했습니다.');
+    }
+    const checkNewPassword = await bcrypt.compare(newPassword, checkPassword);
+    if (!checkNewPassword) {
+        throw new Error('비밀번호가 일치하지 않습니다.');
+    }
+    await Users.findOneAndUpdate({ _id: userId }, filter);
+
+    res.sendStatus(200);
+});
+
 module.exports = {
     editCoverImage,
     editUser,
@@ -108,4 +124,5 @@ module.exports = {
     getStoreLikes,
     deleteStoreLike,
     getUserReviews,
+    changePassword,
 };

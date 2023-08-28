@@ -13,7 +13,6 @@ const getReviewById = asyncHandler(async (req, res) => {
 // 리뷰 생성
 
 const createReview = asyncHandler(async (req, res) => {
-    // 리뷰 객체 추가 => usernickname, username 로직 변경 필요
     const { storeId } = req.params;
     const { userId } = req.userData;
     const userInfo = await Users.findOne({ _id: userId });
@@ -28,7 +27,6 @@ const createReview = asyncHandler(async (req, res) => {
         userId,
         photos: multiImageAddressHandler(req.files),
     };
-    console.log(newReview);
 
     if (!grade || !content) {
         const error = new Error('입력하지 않은 값이 존재합니다.');
@@ -102,7 +100,6 @@ const deleteReview = asyncHandler(async (req, res) => {
     // 평균별점 업데이트 로직
     const newRating = (starRating * reviews.length - grade) / (reviews.length - 1);
     const newReview = reviews.filter((review) => String(review) !== reviewId);
-    console.log(newReview);
     const updated = { starRating: newRating, reviews: newReview };
     await Store.findOneAndUpdate({ _id: storeId }, updated);
     await Review.deleteOne({ _id: reviewId });

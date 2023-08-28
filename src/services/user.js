@@ -5,12 +5,8 @@ const asyncHandler = require('../utils/async-handler');
 // 배경 이미지 변경
 const editCoverImage = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
-    const updatedUser = await Users.findOneAndUpdate(
-        { _id: userId },
-        { coverImage: req.file.location },
-        { new: true },
-    );
-    res.json(updatedUser);
+    await Users.findOneAndUpdate({ _id: userId }, { coverImage: req.file.location }, { new: true });
+    res.status(201);
 });
 
 // 회원 정보 수정
@@ -25,7 +21,7 @@ const editUser = asyncHandler(async (req, res) => {
     }
     const { name, nickname, profileText } = req.body;
     console.log(name, nickname, profileText);
-    const updatedUser = await Users.findOneAndUpdate(
+    await Users.findOneAndUpdate(
         { _id: userId },
         {
             name,
@@ -34,7 +30,7 @@ const editUser = asyncHandler(async (req, res) => {
             profileImage: req.file.location,
         },
     );
-    res.json(updatedUser);
+    res.status(201);
 });
 
 // 회원 탈퇴 O

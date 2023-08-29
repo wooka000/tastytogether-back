@@ -8,7 +8,4 @@ const isValidHour = (hour1, hour2) => regHour.test(hour1) && regHour.test(hour2)
 const regMinute = /^[0-5]\d$/;
 const isvalidMinute = (minute1, minute2) => regMinute.test(minute1) && regMinute.test(minute2);
 
-const address = /https?:\/\/[\w\-\\.]+/g;
-const isAddress = (img) => address.test(img);
-
-module.exports = { isValidPhoneNumber, isValidHour, isvalidMinute, isAddress };
+module.exports = { isValidPhoneNumber, isValidHour, isvalidMinute };

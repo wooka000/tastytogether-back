@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { Users, Review, Store, Board } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
-const multiImageAddressHandler = require('../utils/multiImageAddressHandler');
 
 // 배경 이미지 변경
 const editCoverImage = asyncHandler(async (req, res) => {
@@ -22,21 +21,21 @@ const getUser = asyncHandler(async (req, res) => {
 const editUser = asyncHandler(async (req, res) => {
     const { userId } = req.params;
     const tokenUserId = req.userData.userId;
+
     if (userId !== tokenUserId) {
         const error = new Error('다른 유저 정보 수정은 불가합니다.');
         error.statusCode = 401;
         throw error;
     }
     const { name, nickname, profileText } = req.body;
-    const images = multiImageAddressHandler(req.files);
     await Users.findOneAndUpdate(
         { _id: userId },
         {
             name,
             nickname,
             profileText,
-            profileImage: images[0],
-            coverImage: images[1],
+            profileImage: req.files.profileImage[0].location,
+            coverImage: req.files.coverImage[0].location,
         },
     );
     res.sendStatus(201);

@@ -123,13 +123,16 @@ const updateStoreDetail = asyncHandler(async (req, res) => {
         newClosedDays,
     } = req.body;
 
+    const isFullMenuItems = newMenuItems.filter((el) => el.name !== '' && el.price !== '');
+    const isCorrectCloseDays = newClosedDays.filter((el) => el !== '');
+    
     if (
         !newPhone ||
-        !newMenuItems ||
+        isFullMenuItems.length !== 3 ||
         !newPriceRange ||
         !newParkingInfo ||
         !newBusinessHours ||
-        !newClosedDays
+        isCorrectCloseDays.length === 0
     ) {
         const error = new Error('입력하지 않은 값이 존재합니다.');
         error.statusCode = 400;
@@ -181,6 +184,7 @@ const isUserLike = (userLikeList, userId) =>
 const updateStoreLikes = asyncHandler(async (req, res) => {
     const { storeId } = req.params;
     const { userId } = req.userData;
+    // const userId = '64e2245ebef0ef0220e8d707';
     const storeInfo = await Store.findOne({ _id: storeId });
     const userLikeList = [...storeInfo.storeLikes];
     const likeIndex = isUserLike(userLikeList, userId);

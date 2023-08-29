@@ -2,7 +2,7 @@ require('dotenv').config();
 const { Router } = require('express');
 const asyncHandler = require('../utils/async-handler');
 const verifySignUpForm = require('../middlewares/signupFormValidator');
-
+const { uploadSingleImage } = require('../middlewares/imageUploader');
 const authController = require('../services/authController');
 
 const router = Router();
@@ -13,12 +13,21 @@ const { Users } = require('../data-access');
 
 const getUsers = async (req, res) => {
     const users = await Users.find();
-    if (!users) {
-        res.status(400).json({ message: '가입된 이용자가 없습니다.' }).end();
-    }
-    res.status(200).json(users);
+
+    return res.status(200).json(users);
 };
+
+// imageUploader 테스트용 코드
+const postUsers = async (req, res) => {
+    try {
+        return res.sendStatus(200);
+    } catch (e) {
+        return res.sendStatus(400);
+    }
+};
+
 router.get('/user', verifyLogin, asyncHandler(getUsers));
+router.post('/user', uploadSingleImage('image'), asyncHandler(postUsers));
 
 router.post('/login', asyncHandler(authController.login));
 router.post('/signup', verifySignUpForm, asyncHandler(authController.signup));

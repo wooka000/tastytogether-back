@@ -6,27 +6,49 @@ const { validationResult } = require('express-validator');
 const { Users, RefreshTokens } = require('../data-access');
 
 const ACCESS_TOKEN_DURATION = '1m';
-const COOKIE_DURATION = 1 * 30 * 60 * 1000; // hour * min * sec * ms
+const COOKIE_DURATION = 1 * 30 * 60 * 1000;
 const { ACCESS_TOKEN_SECRET } = process.env;
 const DEFAULT_PROFILE_IMAGE =
-    'https://tasty-together.s3.ap-northeast-2.amazonaws.com/image/default-profile-image.png';
+    'https://tasty-together.s3.ap-northeast-2.amazonaws.com/main/default-profile-image.png';
+
+const RES_MSG = {
+    email: '사용 가능한 이메일입니다.',
+    nickname: '사용 가능한 닉네임입니다.',
+};
+
+const ERR_MSG = {
+    login: {
+        emptyField: '이메일과 비밀번호를 입력하세요.',
+        notFound: '가입되지 않은 이메일입니다.',
+        wrongPassword: '비밀번호를 잘못 입력했습니다.',
+    },
+    signUp: {
+        invalidForm: '회원가입 양식이 올바르지 않습니다.',
+        duplicate: '이메일 또는 닉네임이 중복되었습니다.',
+    },
+    duplicateCheck: {
+        email: '이미 사용 중인 이메일입니다.',
+        nickname: '이미 사용 중인 닉네임입니다.',
+    },
+    refreshToken: '로그인 정보가 없습니다.',
+};
 
 // 로그인
 const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({ message: '이메일과 비밀번호를 입력하세요.' }).end();
+        return res.status(400).json({ message: ERR_MSG.login.emptyField }).end();
     }
 
     const registeredUser = await Users.findOne({ email });
     if (!registeredUser) {
-        return res.status(400).json({ message: '가입되지 않은 이메일입니다.' }).end();
+        return res.status(404).json({ message: ERR_MSG.login.notFound }).end();
     }
     const checkPassword = await bcrypt.compare(password, registeredUser.password);
 
     if (!checkPassword) {
-        return res.status(400).json({ message: '비밀번호를 잘못 입력했습니다.' }).end();
+        return res.status(400).json({ message: ERR_MSG.login.wrongPassword }).end();
     }
 
     const tokenPayload = { _id: registeredUser._id, email: registeredUser.email };
@@ -37,7 +59,7 @@ const login = async (req, res) => {
     const refreshToken = await crypto.randomBytes(8).toString('hex');
     await RefreshTokens.create({
         userId: registeredUser._id,
-        email: registeredUser.email,
+
         refreshToken,
     });
 
@@ -68,7 +90,7 @@ const signup = async (req, res) => {
         return res
             .status(400)
             .json({
-                message: '회원가입 양식이 올바르지 않습니다.',
+                message: ERR_MSG.signUp.invalidForm,
                 errors,
             })
             .end();
@@ -79,7 +101,7 @@ const signup = async (req, res) => {
     // 이메일, 닉네임 중복여부
     const checkEmail = await Users.findOne({ $or: [{ email }, { nickname }] });
     if (checkEmail) {
-        return res.status(400).json({ message: '이메일 또는 닉네임이 중복되었습니다.' }).end();
+        return res.status(400).json({ message: ERR_MSG.signUp.duplicate }).end();
     }
 
     const hashingSalt = bcrypt.genSaltSync();
@@ -97,7 +119,7 @@ const signup = async (req, res) => {
 
     await Users.create(newUser);
 
-    res.status(201).json({ message: '회원가입되었습니다.' });
+    res.sendStatus(201);
 };
 
 // 이메일 중복검사
@@ -106,10 +128,10 @@ const checkEmail = async (req, res) => {
     const checkResult = await Users.findOne({ email });
 
     if (checkResult) {
-        return res.status(400).json({ message: '이미 사용 중인 이메일입니다.' }).end();
+        return res.status(400).json({ message: ERR_MSG.duplicateCheck.email }).end();
     }
 
-    res.status(200).json({ message: '사용 가능한 이메일입니다.' });
+    res.status(200).json({ message: RES_MSG.email });
 };
 
 // 닉네임 중복검사
@@ -118,21 +140,22 @@ const checkNickname = async (req, res) => {
     const checkResult = await Users.findOne({ nickname });
 
     if (checkResult) {
-        return res.status(400).json({ message: '이미 사용 중인 닉네임입니다.' }).end();
+        return res.status(400).json({ message: ERR_MSG.duplicateCheck.nickname }).end();
     }
 
-    res.status(200).json({ message: '사용 가능한 닉네임입니다.' });
+    res.status(200).json({ message: RES_MSG.nickname });
 };
 
 // refreshToken 확인 후 accessToken 재발행
 const issueNewAccessTokenByRefreshToken = async (req, res) => {
     const { refreshToken } = req.cookies;
 
-    if (!req.cookies?.refreshToken)
-        return res.status(401).json({ message: '로그인 정보가 없습니다.' }).end();
+    if (!req.cookies?.refreshToken) {
+        return res.status(401).json({ message: ERR_MSG.refreshToken }).end();
+    }
     const foundUser = await RefreshTokens.findOne({ refreshToken });
     if (!foundUser) {
-        return res.status(401).json({ message: '로그인 정보가 없습니다.' }).end();
+        return res.status(401).json({ message: ERR_MSG.refreshToken }).end();
     }
 
     const tokenPayload = { _id: foundUser.userId, email: foundUser.email };

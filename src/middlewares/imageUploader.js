@@ -6,6 +6,7 @@ const AWS = require('aws-sdk');
 const { S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY } = process.env;
 
 const FILE_TYPE = /^image\/.*/;
+const FILE_SIZE = 10 * 1024 * 1024;
 
 AWS.config.update({
     correctClockSkew: true,
@@ -24,13 +25,20 @@ const multerConfig = {
         },
     }),
 
+    limits: {
+        fileSize: FILE_SIZE,
+    },
+
     fileFilter: (req, file, cb) => {
-        if (file.mimetype.match(FILE_TYPE)) {
-            cb(null, true);
-        } else {
-            const error = new Error('이미지 파일만 업로드 가능합니다.');
-            cb(error, false);
+        if (!file.mimetype.match(FILE_TYPE)) {
+            return cb(new Error('이미지 파일만 업로드 가능합니다.'), false);
         }
+
+        if (file.size > FILE_SIZE) {
+            return cb(new Error('파일 크기는 10MB까지 허용됩니다.'), false);
+        }
+
+        cb(null, true);
     },
 };
 

@@ -10,7 +10,6 @@ const editCoverImage = asyncHandler(async (req, res) => {
 });
 
 // 회원 정보 수정
-
 const editUser = asyncHandler(async (req, res) => {
     const { userId } = req.params;
     const tokenUserId = req.userData.userId;
@@ -33,15 +32,14 @@ const editUser = asyncHandler(async (req, res) => {
     res.status(201);
 });
 
-// 회원 탈퇴 O
+// 회원 탈퇴
 const deleteUser = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
     await Users.deleteOne({ _id: userId });
-    // deleteOne 리턴값 : {acknowledged:성공 OR 실패, deletedCount:삭제한 갯수}
-    res.sendStatus(200);
+    res.sendStatus(204);
 });
 
-// 리뷰 목록 나열 O
+// 리뷰 목록 나열
 const getMyReviews = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
     const userInfo = await Users.findOne({ _id: userId });
@@ -49,7 +47,7 @@ const getMyReviews = asyncHandler(async (req, res) => {
     res.status(200).json({ reviewList });
 });
 
-// 특정 사용자 리뷰 조회 O
+// 특정 사용자 리뷰 조회
 const getUserReviews = asyncHandler(async (req, res) => {
     const { userId } = req.params;
     const user = await Users.findOne({ _id: userId });
@@ -59,10 +57,10 @@ const getUserReviews = asyncHandler(async (req, res) => {
         error.statusCode = 204;
         throw error;
     }
-    res.status(200).json(reviewList);
+    res.json({ reviewList });
 });
 
-// 게시글 목록 나열 O
+// 게시글 목록 나열
 const getBoards = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
     const userInfo = await Users.findOne({ _id: userId });
@@ -70,7 +68,7 @@ const getBoards = asyncHandler(async (req, res) => {
     res.json({ boardList });
 });
 
-// 가게 찜 목록 나열 O
+// 가게 찜 목록 나열
 const getStoreLikes = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
     const userInfo = await Users.findOne({ _id: userId });

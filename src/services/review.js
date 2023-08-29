@@ -19,13 +19,7 @@ const createReview = asyncHandler(async (req, res) => {
     const { grade, content } = req.body;
     const { nickname, name } = userInfo;
 
-    if (!grade || !content) {
-        const error = new Error('입력하지 않은 값이 존재합니다.');
-        error.statusCode = 400;
-        throw error;
-    }
-
-    const newReview = await Review.create({
+    const newReview = {
         grade,
         content,
         usernickname: nickname,
@@ -33,24 +27,32 @@ const createReview = asyncHandler(async (req, res) => {
         storeId,
         userId,
         photos: multiImageAddressHandler(req.files),
-    });
+    };
+
+    if (!grade || !content) {
+        const error = new Error('입력하지 않은 값이 존재합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
 
     if (!photoLimit(newReview.photos)) {
-        await Review.deleteOne({ _id: newReview._id });
+        await Review.deleteOne({ newReview });
         const error = new Error('사진은 최대 8장 까지만 업로드 가능합니다.');
         error.statusCode = 400;
         throw error;
     }
 
+    await Review.create(newReview);
     // store의 review 필드에 리뷰 아이디 추가
     const updatedStore = await Store.findOne({ _id: storeId });
     const { starRating, reviews } = updatedStore;
 
     // store의 별점 평균 추가 로직
     const updatedRating = (starRating * reviews.length + Number(grade)) / (reviews.length + 1);
+    console.log(starRating, reviews.length, grade, updatedRating);
     const updated = { reviews: [...reviews, newReview._id], starRating: updatedRating };
     await Store.findOneAndUpdate({ _id: storeId }, updated);
-    res.status(201);
+    res.status(201).json(newReview);
 });
 
 // 리뷰 수정
@@ -86,7 +88,7 @@ const editReview = asyncHandler(async (req, res) => {
     const updatedRating = { starRating: newRating };
 
     await Store.findOneAndUpdate({ _id: updatedReview.storeId }, updatedRating);
-    res.status(201);
+    res.status(201).json(updatedStore);
 });
 
 // 리뷰 삭제

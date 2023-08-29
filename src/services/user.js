@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { Users, Review, Store, Board } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
+const { isAddress } = require('../utils/regList');
 
 // 배경 이미지 변경
 const editCoverImage = asyncHandler(async (req, res) => {
@@ -27,15 +28,19 @@ const editUser = asyncHandler(async (req, res) => {
         error.statusCode = 401;
         throw error;
     }
+    const user = await Users.findOne({ _id: userId });
     const { name, nickname, profileText } = req.body;
+    const profileImageAddress = req.files.profilImage[0].location;
+    const coverImageAddress = req.files.coverImage[0].location;
+
     await Users.findOneAndUpdate(
         { _id: userId },
         {
             name,
             nickname,
             profileText,
-            profileImage: req.files.profileImage[0].location,
-            coverImage: req.files.coverImage[0].location,
+            profileImage: isAddress(profileImageAddress) ? user.profileImage : profileImageAddress,
+            coverImage: isAddress(coverImageAddress) ? user.profileImage : coverImageAddress,
         },
     );
     res.sendStatus(201);

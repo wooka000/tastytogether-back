@@ -1,11 +1,11 @@
 const { Router } = require('express');
 
 const router = Router();
-
 const boardController = require('../services/board');
+const verifyLogin = require('../middlewares/loginValidator');
 const { uploadSingleImage } = require('../middlewares/imageUploader');
 
-router.post('/posts', uploadSingleImage('image'), boardController.postBoard);
+router.post('/posts', uploadSingleImage('image'), verifyLogin, boardController.postBoard);
 
 // 게시글 목록 조회
 router.get('/posts', (req, res) => {
@@ -20,11 +20,11 @@ router.get('/posts', (req, res) => {
 
 // 게시글 작성
 
-router.get('/posts/:id', boardController.getDetailBoard);
+router.get('/posts/:id', verifyLogin, boardController.getDetailBoard);
 
-router.patch('/posts/:id', boardController.editBoard);
+router.patch('/posts/:id', verifyLogin, boardController.editBoard);
 
-router.delete('/posts/:id', boardController.deleteBoard);
+router.delete('/posts/:id', verifyLogin, boardController.deleteBoard);
 
 router.get('/regionSearch', boardController.getSearchBoard);
 

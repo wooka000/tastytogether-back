@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { uploadSingleImage } = require('../middlewares/imageUploader');
+const { uploadSingleImage, uploadMultiImage } = require('../middlewares/imageUploader');
 const userController = require('../services/user');
 
 const router = Router();
@@ -11,7 +11,7 @@ router.patch('/coverImage', uploadSingleImage('coverImage'), userController.edit
 router.get('/', userController.getUser);
 
 // 프로필 수정 api O
-router.patch('/:userId', uploadSingleImage('profileImage'), userController.editUser);
+router.patch('/:userId', uploadMultiImage('images'), userController.editUser);
 
 // 유저 탈퇴 api O
 router.delete('/:userId', userController.deleteUser);

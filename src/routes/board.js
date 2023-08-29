@@ -20,11 +20,11 @@ router.get('/posts', (req, res) => {
 
 // 게시글 작성
 
-router.get('/posts/:id', verifyLogin, boardController.getDetailBoard);
+router.get('/posts/:id', verifyLogin,boardController.getDetailBoard);
 
 router.patch('/posts/:id', verifyLogin, boardController.editBoard);
 
-router.delete('/posts/:id', verifyLogin, boardController.deleteBoard);
+router.delete('/posts/:id', verifyLogin,boardController.deleteBoard);
 
 router.get('/regionSearch', boardController.getSearchBoard);
 

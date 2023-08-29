@@ -12,6 +12,7 @@ const storeRoutes = require('./routes/store');
 const reviewRouter = require('./routes/review');
 const boardRouter = require('./routes/board');
 const commentRouter = require('./routes/comment');
+const bannerRouter = require('./routes/banner');
 const verifyLogin = require('./middlewares/loginValidator');
 
 const connectToDatabase = async (url) => {
@@ -44,6 +45,7 @@ app.use('/public', express.static('public'));
 app.use('/auth', authRouter);
 app.use('/stores', storeRoutes);
 app.use('/review', reviewRouter);
+app.use('/banner', bannerRouter);
 app.use('/', boardRouter);
 app.use('/', verifyLogin, commentRouter);
 app.use('/user', verifyLogin, userRouter);

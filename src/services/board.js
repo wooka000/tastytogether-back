@@ -10,7 +10,10 @@ const formatDate = (inputDate) => {
 
 const getDetailBoard = async (req, res) => {
     try {
-        const board = await Board.findById(req.params.id).populate('userId', 'nickname');
+        const board = await Board.findById(req.params.id).populate('userId', [
+            'nickname',
+            'profileImage',
+        ]);
 
         if (!board) {
             return res.status(404).end();
@@ -19,10 +22,10 @@ const getDetailBoard = async (req, res) => {
         const formattedDateBoard = formatDate(board.createdAt);
 
         // 게시물 ID를 사용하여 댓글을 조회합니다.
-        const comments = await Comment.find({ boardId: req.params.id }).populate(
-            'userId',
+        const comments = await Comment.find({ boardId: req.params.id }).populate('userId', [
             'nickname',
-        );
+            'profileImage',
+        ]);
 
         // 게시물과 댓글 정보를 포함하는 응답 객체를 생성합니다.
         const responseObject = {

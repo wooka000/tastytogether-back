@@ -2,6 +2,7 @@ const { Review, Store, Users } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
 const multiImageAddressHandler = require('../utils/multiImageAddressHandler');
 const photoLimit = require('../utils/photoLimit');
+const starRatingForm = require('../utils/starRatingForm');
 
 // 특정 리뷰 조회
 const getReviewById = asyncHandler(async (req, res) => {
@@ -19,15 +20,13 @@ const createReview = asyncHandler(async (req, res) => {
     const { grade, content } = req.body;
     const { nickname, name } = userInfo;
 
-    const newReview = {
-        grade,
-        content,
-        usernickname: nickname,
-        username: name,
-        storeId,
-        userId,
-        photos: multiImageAddressHandler(req.files),
-    };
+    const photos = multiImageAddressHandler(req.files);
+
+    if (!photoLimit(photos)) {
+        const error = new Error('사진은 최대 8장 까지만 업로드 가능합니다.');
+        error.statusCode = 400;
+        throw error;
+    }
 
     if (!grade || !content) {
         const error = new Error('입력하지 않은 값이 존재합니다.');
@@ -35,24 +34,27 @@ const createReview = asyncHandler(async (req, res) => {
         throw error;
     }
 
-    if (!photoLimit(newReview.photos)) {
-        await Review.deleteOne({ newReview });
-        const error = new Error('사진은 최대 8장 까지만 업로드 가능합니다.');
-        error.statusCode = 400;
-        throw error;
-    }
+    const newReview = await Review.create({
+        grade,
+        content,
+        usernickname: nickname,
+        username: name,
+        storeId,
+        userId,
+        photos,
+    });
 
-    await Review.create(newReview);
     // store의 review 필드에 리뷰 아이디 추가
     const updatedStore = await Store.findOne({ _id: storeId });
     const { starRating, reviews } = updatedStore;
 
     // store의 별점 평균 추가 로직
-    const updatedRating = (starRating * reviews.length + Number(grade)) / (reviews.length + 1);
-    console.log(starRating, reviews.length, grade, updatedRating);
+    const updatedRating = starRatingForm(
+        (starRating * reviews.length + Number(grade)) / (reviews.length + 1),
+    );
     const updated = { reviews: [...reviews, newReview._id], starRating: updatedRating };
     await Store.findOneAndUpdate({ _id: storeId }, updated);
-    res.status(201).json(newReview);
+    res.sendStatus(201);
 });
 
 // 리뷰 수정
@@ -83,12 +85,13 @@ const editReview = asyncHandler(async (req, res) => {
     const updatedStore = await Store.findOne({ _id: updatedReview.storeId });
     // 평균별점 업데이트 로직
     const { reviews, starRating } = updatedStore;
-    const newRating =
-        (starRating * reviews.length - previousGrade + Number(grade)) / reviews.length;
+    const newRating = starRatingForm(
+        (starRating * reviews.length - previousGrade + Number(grade)) / reviews.length,
+    );
     const updatedRating = { starRating: newRating };
 
     await Store.findOneAndUpdate({ _id: updatedReview.storeId }, updatedRating);
-    res.status(201).json(updatedStore);
+    res.sendStatus(201);
 });
 
 // 리뷰 삭제
@@ -101,7 +104,11 @@ const deleteReview = asyncHandler(async (req, res) => {
     const { starRating, reviews } = store;
 
     // 평균별점 업데이트 로직
-    const newRating = (starRating * reviews.length - Number(grade)) / (reviews.length - 1);
+    const newRating =
+        store.reviews.length !== 1
+            ? starRatingForm((starRating * reviews.length - Number(grade)) / (reviews.length - 1))
+            : 0;
+    console.log(newRating);
     const newReview = reviews.filter((review) => String(review) !== reviewId);
     const updated = { starRating: newRating, reviews: newReview };
     await Store.findOneAndUpdate({ _id: storeId }, updated);

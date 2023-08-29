@@ -5,16 +5,11 @@ const asyncHandler = require('../utils/async-handler');
 // 배경 이미지 변경
 const editCoverImage = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
-    const updatedUser = await Users.findOneAndUpdate(
-        { _id: userId },
-        { coverImage: req.file.location },
-        { new: true },
-    );
-    res.json(updatedUser);
+    await Users.findOneAndUpdate({ _id: userId }, { coverImage: req.file.location }, { new: true });
+    res.sendStatus(201);
 });
 
 // 회원 정보 수정
-
 const editUser = asyncHandler(async (req, res) => {
     const { userId } = req.params;
     const tokenUserId = req.userData.userId;
@@ -25,7 +20,7 @@ const editUser = asyncHandler(async (req, res) => {
     }
     const { name, nickname, profileText } = req.body;
     console.log(name, nickname, profileText);
-    const updatedUser = await Users.findOneAndUpdate(
+    await Users.findOneAndUpdate(
         { _id: userId },
         {
             name,
@@ -34,26 +29,25 @@ const editUser = asyncHandler(async (req, res) => {
             profileImage: req.file.location,
         },
     );
-    res.json(updatedUser);
+    res.sendStatus(201);
 });
 
-// 회원 탈퇴 O
+// 회원 탈퇴
 const deleteUser = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
     await Users.deleteOne({ _id: userId });
-    // deleteOne 리턴값 : {acknowledged:성공 OR 실패, deletedCount:삭제한 갯수}
-    res.sendStatus(200);
+    res.sendStatus(204);
 });
 
-// 리뷰 목록 나열 O
+// 리뷰 목록 나열
 const getMyReviews = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
     const userInfo = await Users.findOne({ _id: userId });
     const reviewList = await Review.find({ userId: userInfo.id });
-    res.status(200).json({ reviewList });
+    res.json({ reviewList });
 });
 
-// 특정 사용자 리뷰 조회 O
+// 특정 사용자 리뷰 조회
 const getUserReviews = asyncHandler(async (req, res) => {
     const { userId } = req.params;
     const user = await Users.findOne({ _id: userId });
@@ -63,10 +57,10 @@ const getUserReviews = asyncHandler(async (req, res) => {
         error.statusCode = 204;
         throw error;
     }
-    res.status(200).json(reviewList);
+    res.json({ reviewList });
 });
 
-// 게시글 목록 나열 O
+// 게시글 목록 나열
 const getBoards = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
     const userInfo = await Users.findOne({ _id: userId });
@@ -74,7 +68,7 @@ const getBoards = asyncHandler(async (req, res) => {
     res.json({ boardList });
 });
 
-// 가게 찜 목록 나열 O
+// 가게 찜 목록 나열
 const getStoreLikes = asyncHandler(async (req, res) => {
     const { userId } = req.userData;
     const userInfo = await Users.findOne({ _id: userId });
@@ -82,7 +76,7 @@ const getStoreLikes = asyncHandler(async (req, res) => {
     res.json({ storeLikeList });
 });
 
-// 가게 찜 삭제 O
+// 가게 찜 삭제
 const deleteStoreLike = asyncHandler(async (req, res) => {
     const { storeId } = req.params;
     const { userId } = req.userData;
@@ -112,7 +106,7 @@ const changePassword = asyncHandler(async (req, res) => {
     }
     await Users.findOneAndUpdate({ _id: userId }, filter);
 
-    res.sendStatus(200);
+    res.sendStatus(201);
 });
 
 module.exports = {

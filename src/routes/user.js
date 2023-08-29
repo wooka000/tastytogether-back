@@ -7,6 +7,9 @@ const router = Router();
 // 배경 이미지 변경
 router.patch('/coverImage', uploadSingleImage('coverImage'), userController.editCoverImage);
 
+// 유저 정보 가져오기
+router.get('/', userController.getUser);
+
 // 프로필 수정 api O
 router.patch('/:userId', uploadSingleImage('profileImage'), userController.editUser);
 
@@ -23,7 +26,7 @@ router.get('/:userId/reviews', userController.getUserReviews);
 router.get('/boards', userController.getBoards);
 
 // (마이페이지) 가게 찜 목록 조회 O
-router.get('/store/likes', userController.getStoreLikes);
+router.get('/storelikes', userController.getStoreLikes);
 
 // (마이페이지) 가게 찜 삭제 O
 router.delete('/store/like/:storeId', userController.deleteStoreLike);

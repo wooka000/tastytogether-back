@@ -9,6 +9,14 @@ const editCoverImage = asyncHandler(async (req, res) => {
     res.sendStatus(201);
 });
 
+// 유저 정보 가져오기
+const getUser = asyncHandler(async (req, res) => {
+    const { userId } = req.userData;
+    const user = await Users.findOne({ _id: userId });
+    const { name, nickname, profileImage, profileText, coverImage } = user;
+    res.json({ name, nickname, profileImage, profileText, coverImage });
+});
+
 // 회원 정보 수정
 const editUser = asyncHandler(async (req, res) => {
     const { userId } = req.params;
@@ -111,6 +119,7 @@ const changePassword = asyncHandler(async (req, res) => {
 
 module.exports = {
     editCoverImage,
+    getUser,
     editUser,
     deleteUser,
     getBoards,

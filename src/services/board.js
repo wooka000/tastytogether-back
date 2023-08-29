@@ -61,20 +61,9 @@ const getDetailBoard = async (req, res) => {
 
 const getSearchBoard = async (req, res) => {
     try {
-        const result = await Board.aggregate([
-            {
-                $search: {
-                    index: 'regionSearch',
-                    text: {
-                        query: req.query.value,
-                        path: 'region',
-                    },
-                },
-            },
-            {
-                $sort: { _id: -1 },
-            },
-        ]);
+        const searchValue = req.query.value;
+
+        const result = await Board.find({ region: searchValue }).sort({ _id: -1 });
 
         res.status(200).json(result);
     } catch (error) {

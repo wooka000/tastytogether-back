@@ -17,13 +17,21 @@ const ERROR_MESSAGE = {
     },
 };
 
+const REGEX = {
+    name: /^[가-힣]{1,5}$/,
+    password: {
+        eng: /[a-zA-Z]/,
+        num: /[0-9]/,
+    },
+};
+
 const verifySignUpForm = [
     body('email').normalizeEmail().isEmail().withMessage(ERROR_MESSAGE.invalidEmail),
 
     body('name')
         .notEmpty()
         .withMessage(ERROR_MESSAGE.name.required)
-        .matches(/^[가-힣]{1,5}$/)
+        .matches(REGEX.name)
         .withMessage(ERROR_MESSAGE.name.typeAndLengthLimit),
 
     body('nickname')
@@ -35,9 +43,9 @@ const verifySignUpForm = [
     body('password')
         .isLength({ min: 8 })
         .withMessage(ERROR_MESSAGE.password.lengthLimit)
-        .matches(/[a-zA-Z]/)
+        .matches(REGEX.password.eng)
         .withMessage(ERROR_MESSAGE.password.includeAlphabet)
-        .matches(/[0-9]/)
+        .matches(REGEX.password.num)
         .withMessage(ERROR_MESSAGE.password.includeNumber),
 ];
 

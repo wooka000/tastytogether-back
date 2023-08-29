@@ -1,12 +1,22 @@
 const { Board, Comment } = require('../data-access');
 // 게시글 목록 조회
 // GET /posts
+const formatDate = (inputDate) => {
+    const date = new Date(inputDate);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+        date.getDate(),
+    ).padStart(2, '0')}`;
+};
+
 const getDetailBoard = async (req, res) => {
     try {
         const board = await Board.findById(req.params.id).populate('userId', 'nickname');
+
         if (!board) {
             return res.status(404).end();
         }
+
+        const formattedDateBoard = formatDate(board.createdAt);
 
         // 게시물 ID를 사용하여 댓글을 조회합니다.
         const comments = await Comment.find({ boardId: req.params.id }).populate(
@@ -24,7 +34,9 @@ const getDetailBoard = async (req, res) => {
                 title: board.title,
                 content: board.content,
                 meetDate: board.meetDate,
-                createdAt: board.createdAt,
+                region: board.region,
+                image: board.image,
+                createdAt: formattedDateBoard,
             },
             comments: comments.map((comment) => ({
                 // eslint-disable-next-line no-underscore-dangle
@@ -32,7 +44,7 @@ const getDetailBoard = async (req, res) => {
                 userId: comment.userId,
                 boardId: comment.boardId,
                 content: comment.content,
-                createdAt: comment.createdAt,
+                createdAt: formatDate(comment.createdAt),
                 updatedAt: comment.updatedAt,
             })),
         };
@@ -78,10 +90,14 @@ const getAllBoard = async (req, res, countPerPage, pageNo) => {
             startItemNo = Math.max(0, totalCount - countPerPage);
         }
 
-        const boardList = await Board.find({}).skip(startItemNo).limit(countPerPage).populate({
-            path: 'userId',
-            select: 'nickname',
-        });
+        const boardList = await Board.find({})
+            .sort({ createdAt: -1 })
+            .skip(startItemNo)
+            .limit(countPerPage)
+            .populate({
+                path: 'userId',
+                select: 'nickname',
+            });
 
         res.status(200).json({
             success: true,

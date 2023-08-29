@@ -5,10 +5,11 @@ const AWS = require('aws-sdk');
 
 const { S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY } = process.env;
 
-const FILE_EXTENSION = {
-    'image/png': 'png',
-    'image/jpeg': 'jpeg',
-    'image/jpg': 'jpg',
+const FILE_TYPE = /^image\/.*/;
+const FILE_SIZE = 10 * 1024 * 1024;
+const ERR_MSG = {
+    fileType: '이미지 파일만 업로드 가능합니다.',
+    fileSize: '파일 크기는 10MB까지 허용됩니다.',
 };
 
 AWS.config.update({
@@ -24,14 +25,24 @@ const multerConfig = {
         bucket: 'tasty-together',
         contentType: multerS3.AUTO_CONTENT_TYPE,
         key(req, file, cb) {
-            cb(null, `image/${file.fieldname}-${Date.now()}.${FILE_EXTENSION[file.mimetype]}`);
+            cb(null, `image/${Date.now()}-${file.fieldname}-${file.originalname}`);
         },
     }),
 
+    limits: {
+        fileSize: FILE_SIZE,
+    },
+
     fileFilter: (req, file, cb) => {
-        const isValid = !!FILE_EXTENSION[file.mimetype];
-        const error = isValid ? null : new Error('png, jpeg, jpg 파일만 업로드 가능합니다.');
-        cb(error, isValid);
+        if (!file.mimetype.match(FILE_TYPE)) {
+            return cb(new Error(ERR_MSG.fileType), false);
+        }
+
+        if (file.size > FILE_SIZE) {
+            return cb(new Error(ERR_MSG.fileSize), false);
+        }
+
+        cb(null, true);
     },
 };
 

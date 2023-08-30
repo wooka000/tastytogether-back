@@ -108,7 +108,6 @@ const deleteReview = asyncHandler(async (req, res) => {
         store.reviews.length !== 1
             ? starRatingForm((starRating * reviews.length - Number(grade)) / (reviews.length - 1))
             : 0;
-    console.log(newRating);
     const newReview = reviews.filter((review) => String(review) !== reviewId);
     const updated = { starRating: newRating, reviews: newReview };
     await Store.findOneAndUpdate({ _id: storeId }, updated);

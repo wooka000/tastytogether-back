@@ -48,5 +48,6 @@ const multerConfig = {
 
 const uploadSingleImage = (fieldname) => multer(multerConfig).single(fieldname);
 const uploadMultiImage = (fieldname) => multer(multerConfig).array(fieldname);
+const uploadFieldImage = (fieldname) => multer(multerConfig).fields(fieldname);
 
-module.exports = { uploadSingleImage, uploadMultiImage };
+module.exports = { uploadSingleImage, uploadMultiImage, uploadFieldImage };

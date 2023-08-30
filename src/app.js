@@ -42,6 +42,7 @@ app.use(cors(corsOption));
 app.use(cookieParser());
 app.use('/public', express.static('public'));
 
+app.use('/banner', bannerRouter);
 app.use('/auth', authRouter);
 app.use('/stores', storeRoutes);
 app.use('/review', reviewRouter);

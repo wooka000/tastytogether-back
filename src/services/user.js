@@ -21,23 +21,31 @@ const getUser = asyncHandler(async (req, res) => {
 const editUser = asyncHandler(async (req, res) => {
     const { userId } = req.params;
     const tokenUserId = req.userData.userId;
+
     if (userId !== tokenUserId) {
         const error = new Error('다른 유저 정보 수정은 불가합니다.');
         error.statusCode = 401;
         throw error;
     }
-    const { name, nickname, profileText } = req.body;
-    console.log(name, nickname, profileText);
-    await Users.findOneAndUpdate(
+    const user = await Users.findOne({ _id: userId });
+    const { name, nickname, profileText, profileImage, coverImage } = req.body;
+
+    const newUser = await Users.findOneAndUpdate(
         { _id: userId },
         {
             name,
             nickname,
             profileText,
-            profileImage: req.file.location,
+            profileImage:
+                typeof profileImage === 'string'
+                    ? user.profileImage
+                    : req.files.profileImage[0].location,
+            coverImage:
+                typeof coverImage === 'string' ? user.coverImage : req.files.coverImage[0].location,
         },
+        { new: true },
     );
-    res.sendStatus(201);
+    res.status(200).json(newUser);
 });
 
 // 회원 탈퇴

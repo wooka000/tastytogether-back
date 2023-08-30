@@ -14,7 +14,7 @@ const checkDuplicate = async ({ name, street }) => {
 };
 
 const checkStore = asyncHandler(async (req, res) => {
-    const { name, street } = req.body;
+    const { name, street } = req.query;
 
     if (await checkDuplicate({ name, street })) {
         res.status(200).json('중복된 가게가 존재합니다.');
@@ -125,7 +125,7 @@ const updateStoreDetail = asyncHandler(async (req, res) => {
 
     const isFullMenuItems = newMenuItems.filter((el) => el.name !== '' && el.price !== '');
     const isCorrectCloseDays = newClosedDays.filter((el) => el !== '');
-    
+
     if (
         !newPhone ||
         isFullMenuItems.length !== 3 ||
@@ -228,16 +228,24 @@ const searchStores = asyncHandler(async (req, res) => {
 
 // 맛집찾기 필터(업종, 지역)
 const filterStores = asyncHandler(async (req, res) => {
-    const { type, region } = req.query;
-    const city = region.split('/')[0];
-    const state = region.split('/')[1];
+    const { type, city, state } = req.query;
 
-    if (type === '' && region === '') {
+    if (type === '' && city === '' && state === '') {
         const error = new Error('필터 선택이 되지 않았습니다.');
         error.statusCode = 400;
         throw error;
     }
-    if (region === '') {
+    if (type === '' && city === '' && state !== '') {
+        const error = new Error('필터 선택이 되지 않았습니다.');
+        error.statusCode = 400;
+        throw error;
+    }
+    if (type === '' && city !== '' && state === '') {
+        const error = new Error('필터 선택이 되지 않았습니다.');
+        error.statusCode = 400;
+        throw error;
+    }
+    if (city === '' && state === '') {
         try {
             const typeResult = await Store.find({ type });
             res.json(typeResult);

@@ -30,7 +30,7 @@ const editUser = asyncHandler(async (req, res) => {
     const user = await Users.findOne({ _id: userId });
     const { name, nickname, profileText, profileImage, coverImage } = req.body;
 
-    await Users.findOneAndUpdate(
+    const newUser = await Users.findOneAndUpdate(
         { _id: userId },
         {
             name,
@@ -45,7 +45,7 @@ const editUser = asyncHandler(async (req, res) => {
         },
         { new: true },
     );
-    res.sendStatus(201);
+    res.sendStatus(200).json(newUser);
 });
 
 // 회원 탈퇴

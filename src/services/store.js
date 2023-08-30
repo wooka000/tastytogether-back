@@ -38,17 +38,19 @@ const createStore = asyncHandler(async (req, res) => {
     } = req.body;
 
     const newBanners = multiImageAddress(req.files);
+    const isFullMenuItems = menuItems.filter((el) => el.name !== '' && el.price !== '');
+    const isCorrectCloseDays = closedDays.filter((el) => el !== '');
 
     if (
         !name ||
         !address ||
         !type ||
         !phone ||
-        !menuItems ||
+        isFullMenuItems.length !== 3 ||
         !priceRange ||
         !parkingInfo ||
         !businessHours ||
-        !closedDays ||
+        isCorrectCloseDays.length === 0 ||
         !newBanners
     ) {
         const error = new Error('입력하지 않은 값이 존재합니다.');

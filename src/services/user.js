@@ -45,7 +45,7 @@ const editUser = asyncHandler(async (req, res) => {
         },
         { new: true },
     );
-    res.sendStatus(200).json(newUser);
+    res.status(200).json(newUser);
 });
 
 // 회원 탈퇴

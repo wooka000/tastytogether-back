@@ -51,7 +51,11 @@ const login = async (req, res) => {
         return res.status(400).json({ message: ERR_MSG.login.wrongPassword }).end();
     }
 
-    const tokenPayload = { _id: registeredUser._id, email: registeredUser.email };
+    const tokenPayload = {
+        _id: registeredUser._id,
+        nickname: registeredUser.nickname,
+        profileImage: registeredUser.profileImage,
+    };
     const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, {
         expiresIn: ACCESS_TOKEN_DURATION,
     });

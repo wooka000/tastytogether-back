@@ -117,7 +117,13 @@ const getStoreInfo = asyncHandler(async (req, res) => {
             return user.profileImage;
         }),
     );
-    res.json({ storeInfo, storeReviewCount, storeLikeCount, userProfiles });
+    const newStoreReviews = [];
+
+    for (let i = 0; i < storeReviews.length; i += 1) {
+        const newReview = { ...storeReviews[i].toObject(), profileImage: userProfiles[i] };
+        newStoreReviews.push(newReview);
+    }
+    res.json({ storeInfo, storeReviewCount, storeLikeCount, newStoreReviews });
 });
 
 // 가게 정보 수정 api 서비스 로직

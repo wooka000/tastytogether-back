@@ -30,25 +30,31 @@ const connectToDatabase = async (url) => {
 
 const url = MONGODB_URI;
 
-const corsOption = { origin: 'http://localhost:3000', credentials: true };
-
 connectToDatabase(url);
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors(corsOption));
+
+app.use(
+    cors({
+        origin: ['http://localhost:3000', 'http://kdt-sw-5-2-team08.elicecoding.com/'],
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        credentials: true, // Enable cookies and other credentials cross-origin
+    }),
+);
+
 app.use(cookieParser());
 app.use('/public', express.static('public'));
 
-app.use('/auth', authRouter);
-app.use('/stores', storeRoutes);
-app.use('/review', reviewRouter);
-app.use('/banner', bannerRouter);
-app.use('/', boardRouter);
-app.use('/', verifyLogin, commentRouter);
-app.use('/user', verifyLogin, userRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/stores', storeRoutes);
+app.use('/api/review', reviewRouter);
+app.use('/api/banner', bannerRouter);
+app.use('/api', boardRouter);
+app.use('/api', verifyLogin, commentRouter);
+app.use('/api/user', verifyLogin, userRouter);
 
 app.use((req, res, next) => {
     const error = new Error('Resource Not Found');
@@ -64,5 +70,5 @@ app.use((err, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`정상적으로 TastyTogether 서버를 시작하였습니다.  http://localhost:${PORT}`);
+    console.log(`정상적으로 TastyTogether 서버를 시작하였습니다. http://localhost:${PORT}`);
 });

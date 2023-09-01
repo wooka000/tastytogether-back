@@ -34,7 +34,7 @@ const editUser = asyncHandler(async (req, res) => {
     const user = await Users.findOne({ _id: userId });
     const { name, nickname, profileText, profileImage, coverImage } = req.body;
 
-    await Users.findOneAndUpdate(
+    const newUser = await Users.findOneAndUpdate(
         { _id: userId },
         {
             name,
@@ -50,10 +50,11 @@ const editUser = asyncHandler(async (req, res) => {
         { new: true },
     );
     const tokenPayload = {
-        _id: user._id,
-        nickname: user.nickname,
-        profileImage: user.profileImage,
+        _id: newUser._id,
+        nickname: newUser.nickname,
+        profileImage: newUser.profileImage,
     };
+    console.log(tokenPayload);
     const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, {
         expiresIn: ACCESS_TOKEN_DURATION,
     });

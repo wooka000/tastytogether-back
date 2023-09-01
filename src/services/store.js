@@ -80,7 +80,7 @@ const createStore = asyncHandler(async (req, res) => {
         throw error;
     }
 
-    await Store.create({
+    const store = await Store.create({
         name,
         address,
         type,
@@ -96,7 +96,7 @@ const createStore = asyncHandler(async (req, res) => {
         reviews: [],
         storeLikes: [],
     });
-    return res.sendStatus(201);
+    return res.status(201).json(store._id);
 });
 
 // 가게 정보 조회 api 서비스 로직

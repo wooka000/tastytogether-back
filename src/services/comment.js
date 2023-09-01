@@ -37,13 +37,21 @@ const postComments = async (req, res) => {
     }
 };
 
-// eslint-disable-next-line consistent-return
 const deleteComments = async (req, res) => {
     try {
-        const comment = await Comment.findOneAndDelete({ _id: req.params.id });
-        if (!comment) {
-            return res.status(404).end();
+        const { userId } = req.userData;
+        const commentId = req.params.id;
+
+        const comment = await Comment.findById(commentId);
+
+  
+        if (!comment || String(comment.userId) !== String(userId)) {
+            return res.status(403).json({ message: "You can't delete this comment" });
         }
+
+        // 댓글을 삭제합니다.
+        await Comment.findByIdAndDelete(commentId);
+
         res.status(200).end();
     } catch (err) {
         console.error(err.message);

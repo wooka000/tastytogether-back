@@ -1,6 +1,10 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { Users, Review, Store, Board } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
+
+const ACCESS_TOKEN_DURATION = '1h';
+const { ACCESS_TOKEN_SECRET } = process.env;
 
 // 배경 이미지 변경
 const editCoverImage = asyncHandler(async (req, res) => {
@@ -30,7 +34,7 @@ const editUser = asyncHandler(async (req, res) => {
     const user = await Users.findOne({ _id: userId });
     const { name, nickname, profileText, profileImage, coverImage } = req.body;
 
-    const newUser = await Users.findOneAndUpdate(
+    await Users.findOneAndUpdate(
         { _id: userId },
         {
             name,
@@ -45,7 +49,15 @@ const editUser = asyncHandler(async (req, res) => {
         },
         { new: true },
     );
-    res.status(200).json(newUser);
+    const tokenPayload = {
+        _id: user._id,
+        nickname: user.nickname,
+        profileImage: user.profileImage,
+    };
+    const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, {
+        expiresIn: ACCESS_TOKEN_DURATION,
+    });
+    res.status(200).json({ accessToken });
 });
 
 // 회원 탈퇴

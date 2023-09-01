@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "lint": "eslint './src/**/*.{ts,tsx,js,jsx}'",
+        "lint": "eslint \"./src/**/*.{ts,tsx,js,jsx}\"",
         "prepare": "husky install",
         "dev": "npx nodemon src/app.js",
         "start": "node src/app.js"
@@ -13,7 +13,17 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "express": "^4.18.2"
+        "aws-sdk": "^2.1440.0",
+        "bcryptjs": "^2.4.3",
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "express-validator": "^7.0.1",
+        "jsonwebtoken": "^9.0.1",
+        "mongoose": "^7.4.3",
+        "multer": "^1.4.5-lts.1",
+        "multer-s3": "^2.10.0"
     },
     "devDependencies": {
         "eslint": "^8.47.0",

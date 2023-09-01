@@ -1,4 +1,4 @@
-const { Store } = require('../data-access');
+const { Store, Users } = require('../data-access');
 const asyncHandler = require('../utils/async-handler');
 const { isValidPhoneNumber, isValidHour, isvalidMinute } = require('../utils/regList');
 const multiImageAddress = require('../utils/multiImageAddressHandler');
@@ -110,7 +110,14 @@ const getStoreInfo = asyncHandler(async (req, res) => {
     const storeReviewCount = storeInfo.reviews.length;
     const userLikeList = storeInfo.storeLikes;
     const storeLikeCount = userLikeList.length;
-    res.json({ storeInfo, storeReviewCount, storeLikeCount });
+    const storeReviews = storeInfo.reviews;
+    const userProfiles = await Promise.all(
+        storeReviews.map(async (review) => {
+            const user = await Users.findOne({ _id: review.userId });
+            return user.profileImage;
+        }),
+    );
+    res.json({ storeInfo, storeReviewCount, storeLikeCount, userProfiles });
 });
 
 // 가게 정보 수정 api 서비스 로직

@@ -125,6 +125,17 @@ const changePassword = asyncHandler(async (req, res) => {
     res.sendStatus(201);
 });
 
+// 닉네임 중복확인
+const checkNickname = asyncHandler(async (req, res) => {
+    const checkResult = await Users.findOne({ nickname: req.params.nickname });
+
+    if (checkResult) {
+        return res.status(200).json({ message: '이미 닉네임이 사용 중입니다.' });
+    }
+
+    res.status(200).json({ message: '중복 확인 완료' });
+});
+
 module.exports = {
     editCoverImage,
     getUser,
@@ -136,4 +147,5 @@ module.exports = {
     deleteStoreLike,
     getUserReviews,
     changePassword,
+    checkNickname,
 };

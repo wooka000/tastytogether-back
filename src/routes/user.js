@@ -35,6 +35,7 @@ router.get('/storelikes', userController.getStoreLikes);
 // (마이페이지) 가게 찜 삭제 O
 router.delete('/store/like/:storeId', userController.deleteStoreLike);
 
-// 추가) 라이크 후순위 작업
+// (마이페이지) 닉네임 중복 확인
+router.get('/checknickname/:nickname', userController.checkNickname);
 
 module.exports = router;

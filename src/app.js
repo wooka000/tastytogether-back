@@ -42,13 +42,13 @@ app.use(cors(corsOption));
 app.use(cookieParser());
 app.use('/public', express.static('public'));
 
-app.use('/api/auth', authRouter);
-app.use('/api/stores', storeRoutes);
-app.use('/api/review', reviewRouter);
-app.use('/api/banner', bannerRouter);
-app.use('/api', boardRouter);
-app.use('/api', verifyLogin, commentRouter);
-app.use('/api/user', verifyLogin, userRouter);
+app.use('/auth', authRouter);
+app.use('/stores', storeRoutes);
+app.use('/review', reviewRouter);
+app.use('/banner', bannerRouter);
+app.use('/', boardRouter);
+app.use('/', verifyLogin, commentRouter);
+app.use('/user', verifyLogin, userRouter);
 
 app.use((req, res, next) => {
     const error = new Error('Resource Not Found');

@@ -162,7 +162,14 @@ const issueNewAccessTokenByRefreshToken = async (req, res) => {
         return res.status(401).json({ message: ERR_MSG.refreshToken }).end();
     }
 
-    const tokenPayload = { _id: foundUser.userId, email: foundUser.email };
+    const registeredUser = await Users.findOne({ _id: foundUser.userId });
+
+    const tokenPayload = {
+        _id: registeredUser._id,
+        nickname: registeredUser.nickname,
+        profileImage: registeredUser.profileImage,
+    };
+
     const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, {
         expiresIn: ACCESS_TOKEN_DURATION,
     });
@@ -178,7 +185,7 @@ const logout = async (req, res) => {
 
     // req.cookies에 refreshToken 있는 경우 - refreshToken delete
     await RefreshTokens.findOneAndDelete({ refreshToken });
-    res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'None', secure: true });
+    res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'Strict', secure: false });
     return res.sendStatus(204);
 };
 

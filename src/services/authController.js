@@ -70,8 +70,8 @@ const login = async (req, res) => {
     const cookieOption = {
         path: '/',
         httpOnly: true,
-        sameSite: 'Strict',
-        secure: false,
+        sameSite: 'None',
+        secure: true,
         maxAge: COOKIE_DURATION,
     };
 
@@ -185,8 +185,7 @@ const logout = async (req, res) => {
 
     // req.cookies에 refreshToken 있는 경우 - refreshToken delete
     await RefreshTokens.findOneAndDelete({ refreshToken });
-    //  res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'None', secure: true });
-    res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'Strict', secure: false });
+    res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'None', secure: true });
     return res.sendStatus(204);
 };
 

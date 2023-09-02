@@ -70,8 +70,8 @@ const login = async (req, res) => {
     const cookieOption = {
         path: '/',
         httpOnly: true,
-        sameSite: 'None',
-        secure: true,
+        sameSite: 'Strict',
+        secure: false,
         maxAge: COOKIE_DURATION,
     };
 

@@ -70,8 +70,8 @@ const login = async (req, res) => {
     const cookieOption = {
         path: '/',
         httpOnly: true,
-        sameSite: 'Strict',
-        secure: false,
+        sameSite: 'None',
+        secure: true,
         maxAge: COOKIE_DURATION,
     };
 
@@ -162,7 +162,14 @@ const issueNewAccessTokenByRefreshToken = async (req, res) => {
         return res.status(401).json({ message: ERR_MSG.refreshToken }).end();
     }
 
-    const tokenPayload = { _id: foundUser.userId, email: foundUser.email };
+    const registeredUser = await Users.findOne({ _id: foundUser.userId });
+
+    const tokenPayload = {
+        _id: registeredUser._id,
+        nickname: registeredUser.nickname,
+        profileImage: registeredUser.profileImage,
+    };
+
     const accessToken = jwt.sign(tokenPayload, ACCESS_TOKEN_SECRET, {
         expiresIn: ACCESS_TOKEN_DURATION,
     });
